@@ -27,6 +27,12 @@ stages:
         pool:
           vmImage: $(vmImageName)
         steps:
+          - task: AzureKeyVault@1
+            inputs:
+              azureSubscription: 'BEIS_COG_Subsidy_Control_Transparency_DB(8e9969b3-7574-441c-a10f-7114dc3314f7)'
+              KeyVaultName: 'Beis-Dev-Keyvault-01'
+              SecretsFilter: '*'
+              RunAsPreJob: true
           - task: Maven@3
             displayName: 'Maven Package'
             inputs:
