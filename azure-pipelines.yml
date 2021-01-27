@@ -33,6 +33,7 @@ stages:
               KeyVaultName: 'Beis-Dev-Keyvault-01'
               SecretsFilter: '*'
               RunAsPreJob: false
+          - script: echo $spring-datasource-url
           - task: Maven@3
             displayName: 'Maven Package'
             inputs:
