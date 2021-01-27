@@ -33,9 +33,14 @@ stages:
               KeyVaultName: 'Beis-Dev-Keyvault-01'
               SecretsFilter: '*'
               RunAsPreJob: false
-          - script: spring.datasource.url=$(spring-datasource-url)
-          - script: spring.datasource.username=$(spring-datasource-username)
-          - script: spring-datasource-password=$(spring-datasource-password)
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'BEIS_COG_Subsidy_Control_Transparency_DB (8e9969b3-7574-441c-a10f-7114dc3314f7)'
+              scriptType: 'pscore'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                $spring.datasource.url =  az keyvault secret show --vault-name Beis-Dev-Keyvault-01 --name $(spring-datasource-url) --query value
+                echo $spring.datasource.url
           - task: Maven@3
             displayName: 'Maven Package'
             inputs:
