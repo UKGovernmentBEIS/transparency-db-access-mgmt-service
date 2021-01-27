@@ -34,6 +34,8 @@ stages:
               SecretsFilter: '*'
               RunAsPreJob: false
           - script: echo $spring-datasource-url
+          - script: echo $spring-datasource-username
+          - script: echo $spring-datasource-password
           - task: Maven@3
             displayName: 'Maven Package'
             inputs:
