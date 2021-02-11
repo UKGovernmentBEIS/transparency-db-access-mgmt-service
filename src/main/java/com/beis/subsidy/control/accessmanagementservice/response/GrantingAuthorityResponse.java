@@ -29,11 +29,15 @@ public class GrantingAuthorityResponse {
     @JsonProperty
     private String lastModifiedDate;
 
+    @JsonProperty
+    private String azGrpId;
+
     public GrantingAuthorityResponse(GrantingAuthority grantingAuthority, Map<String, Integer> userActionCount){
         this.gaId = grantingAuthority.getGaId();
         this.gaName = grantingAuthority.getGrantingAuthorityName();
         this.status = grantingAuthority.getStatus();
         this.lastModifiedDate = SearchUtils.dateToFullMonthNameInDate(grantingAuthority.getLastModifiedTimestamp());
+        this.azGrpId = grantingAuthority.getAzureGroupId();
     }
 
 }

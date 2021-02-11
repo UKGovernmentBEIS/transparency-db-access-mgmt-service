@@ -37,6 +37,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         Object clazz;
         try {
             long time1 = System.currentTimeMillis();
+            log.info("before calling toGraph Api is");
             response = graphAPIFeignClient.getAllUserProfiles("Bearer " + token);
             log.info("{}:: Time taken to call Graph Api is {}", loggingComponentName, (System.currentTimeMillis() - time1));
 
@@ -48,6 +49,8 @@ public class UserManagementServiceImpl implements UserManagementService {
 
             } else if (response.status() == 404) {
                 throw new SearchResultNotFoundException("get users not found");
+            } else {
+                log.error("Graph Api is failed ::{}",response.status());
             }
 
         } catch (FeignException ex) {

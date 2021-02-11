@@ -63,6 +63,7 @@ public class UserManagementController {
        log.info("Before calling retrieveAllUserDetails");
        getRoleFromUserPrincipleObject(userPrinciple);
        String access_token = getBearerToken();
+       log.info("access_token in retrieveAllUserDetails");
        UserDetailsResponse response =  userManagementService.getAllUsers(access_token);
        return ResponseEntity.status(200).body(response);
     }
