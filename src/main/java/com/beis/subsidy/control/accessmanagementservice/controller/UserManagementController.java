@@ -103,6 +103,8 @@ public class UserManagementController {
 
     public String getBearerToken() throws AccessTokenException {
 
+        log.info("inside getBearerToken method::{}", environment);
+
         log.info("graph api scope::{}", environment.getProperty("graph-api-scope"));
 
         MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
