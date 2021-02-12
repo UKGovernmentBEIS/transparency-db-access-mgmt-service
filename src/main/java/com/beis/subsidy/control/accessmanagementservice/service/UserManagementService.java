@@ -4,11 +4,11 @@ import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
 
-import java.util.List;
-
 public interface UserManagementService {
 
     UserDetailsResponse getAllUsers(String token);
+
+    UserDetailsResponse getUserRolesByGrpId(String token, String userId);
 
     UserResponse addUser(String token, AddUserRequest request);
 

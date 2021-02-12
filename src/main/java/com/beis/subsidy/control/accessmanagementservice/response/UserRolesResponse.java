@@ -9,18 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
-public class UserDetailsResponse {
+public class UserRolesResponse {
 
     @JsonProperty
-    private List<UserResponse> value = new ArrayList<>();
+    private List<UserRoleResponse> value = new ArrayList<>();
 
     @JsonGetter("value")
-    public List<UserResponse> getUserProfiles() {
+    public List<UserRoleResponse> getUserRoles() {
         return value;
     }
 
     @JsonSetter("value")
-    public void setUserProfiles(List<UserResponse> value) {
+    public void setUserRoles(List<UserRoleResponse> value) {
         this.value = value;
     }
 
