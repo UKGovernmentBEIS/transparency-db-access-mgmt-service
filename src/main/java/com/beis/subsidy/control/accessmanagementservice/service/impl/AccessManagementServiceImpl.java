@@ -106,9 +106,9 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         List<SubsidyMeasure> top5subsidyMeasure = new ArrayList<>();
         sortSubsidyMeasure(allSubObjList);
         if(allSubObjList != null && allSubObjList.size() > AccessManagementConstant.TOP_SM_TO_DISPLAY) {
-           allSubObjList.stream().limit(AccessManagementConstant.TOP_SM_TO_DISPLAY).forEach(sm -> {
-               top5subsidyMeasure.add(sm);
-           });
+            allSubObjList.stream().limit(AccessManagementConstant.TOP_SM_TO_DISPLAY).forEach(sm -> {
+                top5subsidyMeasure.add(sm);
+            });
         } else {
             top5subsidyMeasure.addAll(allSubObjList);
         }
@@ -142,7 +142,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         if (!StringUtils.isEmpty(awardUpdateRequest.getStatus())) {
             award.setStatus(awardUpdateRequest.getStatus());
         }
-           award.setLastModifiedTimestamp(LocalDate.now());
+        award.setLastModifiedTimestamp(LocalDate.now());
         if (!StringUtils.isEmpty(awardUpdateRequest.getSubsidyAmountExact())) {
             award.setSubsidyFullAmountExact(new BigDecimal(awardUpdateRequest.getSubsidyAmountExact()));
         }
@@ -186,8 +186,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 !StringUtils.isEmpty(awardUpdateRequest.getReason())) {
             award.setReason(awardUpdateRequest.getReason().trim());
         }
-      awardRepository.save(award);
-      return ResponseEntity.status(200).build();
+        awardRepository.save(award);
+        return ResponseEntity.status(200).build();
     }
 
     @Override
@@ -245,45 +245,32 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         searchResults.setSubsidyMeasureUserActionCount(subObjUserActionCount);
     }
     private Map<String, Integer> subsidyMeasureCounts(UserPrinciple userPrincipleObj, List<SubsidyMeasure> subsidyMeasuresList) {
-        int totalSubsidyMeasures = subsidyMeasuresList.size();
-        int totalAwaitingSubsidyMeasures = 0;
-        int totalPublishedSubsidyMeasures = 0;
-        int totalDraftSubsidyMeasures = 0;
-        int totalDeletedSubsidyMeasures = 0;
+        int totalSubsidyScheme = subsidyMeasuresList.size();
+        int totalActiveScheme = 0;
+        int totalInactiveScheme = 0;
 
         if(subsidyMeasuresList != null && subsidyMeasuresList.size() > 0){
             for(SubsidyMeasure sm : subsidyMeasuresList){
-                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SM_AWAITING_APPROVAL)){
-                    totalAwaitingSubsidyMeasures++;
+                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SCHEME_ACTIVE)){
+                    totalActiveScheme++;
                 }
-                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SM_PUBLISHED_STATUS)){
-                    totalPublishedSubsidyMeasures++;
+                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SCHEME_INACTIVE)){
+                    totalInactiveScheme++;
                 }
-                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SM_DRAFT)){
-                    totalDraftSubsidyMeasures++;
-                }
-                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SM_DELETED)){
-                    totalDeletedSubsidyMeasures++;
-                }
-                /*if(sm.getCreatedBy().equals(userPrincipleObj.getUserName())){
-                    totalUserSubsidyMeasures++;
-                }*/
             }
         }
         Map<String, Integer> smUserActivityCount = new HashMap<>();
-        smUserActivityCount.put("totalSubsidyMeasures",totalSubsidyMeasures);
-        smUserActivityCount.put("totalAwaitingSubsidyMeasures",totalAwaitingSubsidyMeasures);
-        smUserActivityCount.put("totalPublishedSubsidyMeasures",totalPublishedSubsidyMeasures);
-        smUserActivityCount.put("totalDraftSubsidyMeasures",totalDraftSubsidyMeasures);
-        smUserActivityCount.put("totalDeletedSubsidyMeasures",totalDeletedSubsidyMeasures);
+        smUserActivityCount.put("totalSubsidyScheme",totalSubsidyScheme);
+        smUserActivityCount.put("totalActiveScheme",totalActiveScheme);
+        smUserActivityCount.put("totalInactiveScheme",totalInactiveScheme);
         return smUserActivityCount;
     }
     private Map<String, Integer> adminAwardCounts(UserPrinciple userPrincipleObj, List<Award> awardList) {
         int totalSubsidyAward = 0;
         int totalAwaitingAward = 0;
         int totalPublishedAward = 0;
-        int totalDraftAward = 0;
-        int totalDeletedAward = 0;
+        int totalRejectedAward = 0;
+        int totalInactiveAward = 0;
         if(awardList != null && awardList.size() >0){
             totalSubsidyAward = awardList.size();
             for(Award award : awardList){
@@ -293,22 +280,19 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_PUBLISHED_STATUS)){
                     totalPublishedAward++;
                 }
-                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_DRAFT)){
-                    totalDraftAward++;
+                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_REJECTED)){
+                    totalRejectedAward++;
                 }
-                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_DELETED)){
-                    totalDeletedAward++;
+                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_INACTIVE)){
+                    totalInactiveAward++;
                 }
-                /*if(award.getCreatedBy().equals(userPrincipleObj.getUserName())){
-                    totalUserSubsidyAward++;
-                }*/
             }
         }
         Map<String, Integer> awardUserActivityCount = new HashMap<>();
         awardUserActivityCount.put("totalSubsidyAward",totalSubsidyAward);
         awardUserActivityCount.put("totalAwaitingAward",totalAwaitingAward);
-        awardUserActivityCount.put("totalDraftAward",totalDraftAward);
-        awardUserActivityCount.put("totalDeletedAward",totalDeletedAward);
+        awardUserActivityCount.put("totalRejectedAward",totalRejectedAward);
+        awardUserActivityCount.put("totalInactiveAward",totalInactiveAward);
         awardUserActivityCount.put("totalPublishedAward",totalPublishedAward);
         return awardUserActivityCount;
     }
@@ -326,12 +310,6 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 } else if(ga.getStatus().equals(AccessManagementConstant.GA_INACTIVE_STATUS)){
                     totalInactiveGA++;
                 }
-                /*if(! ga.getStatus().equals(AccessManagementConstant.GA_PUBLISHED_STATUS)){
-                    totalNotPublishedGA++;
-                }
-                if(ga.getCreatedBy().equals(userPrincipleObj.getUserName())){
-                    totalGAPublishedByUser++;
-                }*/
             }
         }
         Map<String, Integer> gaUserActivityCount = new HashMap<>();
@@ -370,17 +348,17 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
                 // subsidyMeasureTitle from input parameter
                 .where(
-                      SearchUtils.checkNullOrEmptyString(searchName)
-                        ? null :AwardSpecificationUtils.subsidyMeasureTitle(searchName.trim())
-                    .or(SearchUtils.checkNullOrEmptyString(searchName)
-                        ? null :AwardSpecificationUtils.subsidyNumber(searchName.trim()))
-                    .or(SearchUtils.checkNullOrEmptyString(searchName)
-                       ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
-                    .or(SearchUtils.checkNullOrEmptyString(searchName)
-                        ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim())))
-                 // status from input parameter
+                        SearchUtils.checkNullOrEmptyString(searchName)
+                                ? null :AwardSpecificationUtils.subsidyMeasureTitle(searchName.trim())
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.subsidyNumber(searchName.trim()))
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim())))
+                // status from input parameter
                 .and(SearchUtils.checkNullOrEmptyString(status)
-                     ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
+                        ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
         return awardSpecifications;
     }
 }
