@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -51,6 +52,9 @@ public class UserManagementController {
 
     static final String BEARER = "Bearer ";
 
+    @Value("${loggingComponentName}")
+    private String loggingComponentName;
+
     @Autowired
     Environment environment;
 
@@ -75,7 +79,7 @@ public class UserManagementController {
     public ResponseEntity<Object> addUser(@RequestHeader("UserPrinciple") HttpHeaders userPrinciple,
                                           @RequestBody AddUserRequest request) {
 
-        log.info("Before calling retrieveAllUserDetails");
+        log.info("{}::Before calling addUser", loggingComponentName);
         getRoleFromUserPrincipleObject(userPrinciple);
         String access_token = getBearerToken();
         UserResponse response =  userManagementService.addUser(access_token,request);
@@ -89,10 +93,10 @@ public class UserManagementController {
     public ResponseEntity<Object> deleteUser(@RequestHeader("UserPrinciple") HttpHeaders userPrinciple,
                                           @PathVariable("userId") String userId) {
 
-        log.info("Before calling deleteUser");
+        log.info("{}::Before calling deleteUser", loggingComponentName);
         getRoleFromUserPrincipleObject(userPrinciple);
         if (StringUtils.isEmpty(userId)) {
-            log.error("userId is empty: {}", userId);
+            log.error("{}:: userId is empty:: {}",loggingComponentName, userId);
             throw new InvalidRequestException("userId is null or empty");
 
         }
@@ -101,11 +105,22 @@ public class UserManagementController {
         return ResponseEntity.status(204).body(response);
     }
 
+    @GetMapping(
+            value = "/groups/{groupId}",
+            produces = APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Object> retrieveUserDetailsByGroupId(@RequestHeader("userPrinciple") HttpHeaders userPrinciple,
+                                                               @PathVariable("groupId") String groupId) {
+
+        log.info("{}:: Before calling retrieveUserDetailsByGroupId",loggingComponentName);
+        getRoleFromUserPrincipleObject(userPrinciple);
+        String access_token = getBearerToken();
+        log.info("{}:: After access_token in retrieveUserDetailsByGroupId",loggingComponentName);
+        UserDetailsResponse response =  userManagementService.getUserRolesByGrpId(access_token,groupId);
+        return ResponseEntity.status(200).body(response);
+    }
+
     public String getBearerToken() throws AccessTokenException {
-
-        log.info("inside getBearerToken method::{}", environment);
-
-        log.info("graph api scope::{}", environment.getProperty("graph-api-scope"));
 
         MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
@@ -115,7 +130,6 @@ public class UserManagementController {
 
         AccessTokenResponse openIdTokenResponse = graphAPILoginFeignClient
                 .getAccessIdToken(environment.getProperty("tenant-id"),map);
-
         if (openIdTokenResponse == null) {
             throw new AccessTokenException(HttpStatus.valueOf(500),
                     "Graph Api Service Failed while bearer token generate");
