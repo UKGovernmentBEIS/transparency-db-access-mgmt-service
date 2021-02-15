@@ -36,6 +36,6 @@ public class UserResponse {
     @JsonProperty
     private String userPrincipalName;
 
-    /*@JsonProperty
-    private String principalDisplayName;*/
+    @JsonProperty
+    private String groupName;
   }

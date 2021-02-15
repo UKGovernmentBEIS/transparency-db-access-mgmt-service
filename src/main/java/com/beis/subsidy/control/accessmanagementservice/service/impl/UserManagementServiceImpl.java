@@ -111,10 +111,16 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     public  void mapGroupInfoToUser(String token, List<UserResponse> userProfiles) {
+
+       // final UserRolesResponse userResponse;
         log.info("{}::before calling toGraph Api in the mapGroupInfoToUser",loggingComponentName);
         userProfiles.forEach(userProfile -> {
-           String groupName = getUserGroup(token,userProfile.getId());
+            UserRolesResponse userRolesResponse = getUserGroup(token,userProfile.getId());
+            String groupName = userRolesResponse.getUserRoles().stream().filter(
+                    userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
+                    .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get();
            if(!StringUtils.isEmpty(groupName)) {
+
                userProfile.setUserPrincipalName(groupName);
            }
 
@@ -189,6 +195,39 @@ public class UserManagementServiceImpl implements UserManagementService {
         return status;
     }
 
+    /**
+     * This method is used to get the user group based on the userId
+     * @param token
+     * @param userId
+     * @return
+     */
+    public UserResponse getUserDetails(String token, String userId) {
+
+        UserResponse userResponse = null;
+        Response response = null;
+        Object clazz;
+        String groupName = null;
+        try {
+            long time1 = System.currentTimeMillis();
+            log.info("Before calling to Graph Api getUserDetails");
+            response = graphAPIFeignClient.getUserDetails("Bearer " + token,userId);
+            log.info("{}:: Time taken to call Graph Api is {}", loggingComponentName, (System.currentTimeMillis() - time1));
+
+            if (response.status() == 200) {
+                clazz = UserResponse.class;
+                ResponseEntity<Object> responseResponseEntity =  toResponseEntity(response, clazz);
+                userResponse
+                        = (UserResponse) responseResponseEntity.getBody();
+            }
+
+        } catch (FeignException ex) {
+            log.error("{}:: get  userdetail Graph Api is failed:: status code {} & message {}",
+                    loggingComponentName, ex.status(), ex.getMessage());
+            throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
+        }
+        return userResponse;
+    }
+
 
     /**
      * This method is used to get the user group based on the userId
@@ -196,7 +235,7 @@ public class UserManagementServiceImpl implements UserManagementService {
      * @param userId
      * @return
      */
-    public String getUserGroup(String token, String userId) {
+    public UserRolesResponse getUserGroup(String token, String userId) {
         // Graph API call.
         UserRolesResponse userRolesResponse = null;
         Response response = null;
@@ -213,9 +252,9 @@ public class UserManagementServiceImpl implements UserManagementService {
                 ResponseEntity<Object> responseResponseEntity =  toResponseEntity(response, clazz);
                 userRolesResponse
                         = (UserRolesResponse) responseResponseEntity.getBody();
-                groupName = userRolesResponse.getUserRoles().stream().filter(
+                /*groupName = userRolesResponse.getUserRoles().stream().filter(
                         userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
-                        .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get();
+                        .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get();*/
             }
 
         } catch (FeignException ex) {
@@ -223,6 +262,6 @@ public class UserManagementServiceImpl implements UserManagementService {
                     loggingComponentName, ex.status(), ex.getMessage());
             throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
         }
-        return groupName;
+        return userRolesResponse;
     }
 }

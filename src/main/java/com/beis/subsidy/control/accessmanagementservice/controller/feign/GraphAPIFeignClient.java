@@ -43,4 +43,10 @@ public interface GraphAPIFeignClient {
     @Headers({"Authorization: {authorization}","Content-Type: application/json"})
     Response getUserGroupName(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
                                @PathVariable("userId")  String userId);
+
+    @GetMapping(value = "/v1.0/users/{id}")
+    @RequestLine("GET /v1.0/users/{id}")
+    @Headers({"Authorization: {authorization}","Content-Type: application/json"})
+    Response getUserDetails(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
+                              @PathVariable("id")  String id);
 }

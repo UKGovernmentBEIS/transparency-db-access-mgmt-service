@@ -20,4 +20,14 @@ public class UserRoleResponse {
 
     @JsonProperty
     private String principalDisplayName;
-  }
+
+    @JsonProperty
+    private String displayName;
+
+    @JsonProperty
+    private String givenName;
+
+    @JsonProperty
+    private String mail;
+
+}

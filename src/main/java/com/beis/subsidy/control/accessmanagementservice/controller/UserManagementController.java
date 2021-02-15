@@ -4,10 +4,13 @@ import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAP
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessManagementException;
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
+import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
 import com.beis.subsidy.control.accessmanagementservice.exception.UnauthorisedAccessException;
 import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.UserRoleResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.UserRolesResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.AccessManagementConstant;
@@ -120,6 +123,27 @@ public class UserManagementController {
         return ResponseEntity.status(200).body(response);
     }
 
+    @GetMapping(
+            value = "/users/{userId}",
+            produces = APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Object> retrieveUserDetailsById(@RequestHeader("userPrinciple") HttpHeaders userPrinciple,
+                                                               @PathVariable("userId") String userId) {
+
+        log.info("{}:: Before calling retrieveUserDetailsId",loggingComponentName);
+        getRoleFromUserPrincipleObject(userPrinciple);
+        String access_token = getBearerToken();
+        log.info("{}:: After access_token in retrieveUserDetailsId",loggingComponentName);
+        UserResponse response = userManagementService.getUserDetails(access_token,userId);
+        UserRolesResponse roleResponse =  userManagementService.getUserGroup(access_token,userId);
+        if (roleResponse == null) {
+            throw new SearchResultNotFoundException("user group not found");
+        }
+        response.setGroupName(roleResponse.getUserRoles().stream().filter(
+                userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
+                .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get());
+        return ResponseEntity.status(200).body(response);
+    }
     public String getBearerToken() throws AccessTokenException {
 
         MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
