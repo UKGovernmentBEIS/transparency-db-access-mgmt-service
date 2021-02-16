@@ -1,9 +1,12 @@
 package com.beis.subsidy.control.accessmanagementservice.controller;
 
+import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAPILoginFeignClient;
+import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
 import com.beis.subsidy.control.accessmanagementservice.exception.UnauthorisedAccessException;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetailsRequest;
+import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.GrantingAuthorityResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchResults;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchSubsidyResultsResponse;
@@ -14,9 +17,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,6 +44,18 @@ public class AccessManagementController {
 
     @Autowired
     private ObjectMapper objectMapper;
+    
+   
+    @Autowired
+    GraphAPILoginFeignClient graphAPILoginFeignClient;
+
+    static final String BEARER = "Bearer ";
+
+    @Value("${loggingComponentName}")
+    private String loggingComponentName;
+
+    @Autowired
+    Environment environment;
 
     @GetMapping("/health")
     public ResponseEntity<String> getHealth() {
@@ -144,7 +163,8 @@ public class AccessManagementController {
          if (StringUtils.isEmpty(awardNumber) || Objects.isNull(awardUpdateRequest)) {
               throw new InvalidRequestException("Bad Request AwardId is null or requestBody is null");
          }
-        return accessManagementService.updateAwardDetailsByAwardId(awardNumber, awardUpdateRequest);
+         String accessToken= getBearerToken();
+        return accessManagementService.updateAwardDetailsByAwardId(awardNumber, awardUpdateRequest,accessToken);
     }
 
     @GetMapping(
@@ -168,5 +188,24 @@ public class AccessManagementController {
         SearchSubsidyResultsResponse searchResults = accessManagementService.findMatchingSubsidyMeasureWithAwardDetails(
                 searchName, status, page, recordsPerPage);
         return new ResponseEntity<SearchSubsidyResultsResponse>(searchResults, HttpStatus.OK);
+    }
+    
+    public String getBearerToken() throws AccessTokenException {
+
+        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+        map.add("grant_type", "client_credentials");
+        map.add("client_id", environment.getProperty("client-Id"));
+        map.add("client_secret",environment.getProperty("client-secret"));
+        map.add("scope", environment.getProperty("graph-api-scope"));
+
+        AccessTokenResponse openIdTokenResponse = graphAPILoginFeignClient
+                .getAccessIdToken(environment.getProperty("tenant-id"),map);
+        
+        
+        if (openIdTokenResponse == null) {
+            throw new AccessTokenException(HttpStatus.valueOf(500),
+                    "Graph Api Service Failed while bearer token generate");
+        }
+        return openIdTokenResponse.getAccessToken();
     }
 }
