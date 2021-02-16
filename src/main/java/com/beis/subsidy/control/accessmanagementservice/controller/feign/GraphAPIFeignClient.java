@@ -49,14 +49,8 @@ public interface GraphAPIFeignClient {
     @PostMapping(value = "/v1.0/groups/{groupId}/members/$ref")
     @RequestLine("POST /v1.0/groups/{groupId}/members/$ref")
     @Headers({"Authorization: {authorization}","Content-Type: application/json"})
-    //@PostMapping(value = "/v1.0/groups/{groupId}/members/$ref",consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     Response createGroupForUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
                                @PathVariable("groupId")  String groupId,
                                 @RequestBody CreateUserInGroupRequest request);
 
-    @PostMapping(value = "/v1.0/invitations")
-    @RequestLine("POST /v1.0/invitations")
-    @Headers({"Authorization: {authorization}","Content-Type: application/json"})
-    Response inviteUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
-                                @RequestBody InviteUserRequest request);
 }
