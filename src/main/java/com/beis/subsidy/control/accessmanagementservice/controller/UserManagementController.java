@@ -7,11 +7,12 @@ import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequest
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
 import com.beis.subsidy.control.accessmanagementservice.exception.UnauthorisedAccessException;
 import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
+import com.beis.subsidy.control.accessmanagementservice.request.UserRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserRoleResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserRolesResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.AccessManagementConstant;
 import com.beis.subsidy.control.accessmanagementservice.utils.UserPrinciple;
@@ -61,31 +62,24 @@ public class UserManagementController {
     @Autowired
     Environment environment;
 
-    @GetMapping(
-            value = "/users",
-            produces = APPLICATION_JSON_VALUE
-    )
-    public ResponseEntity<Object> retrieveAllUserDetails(@RequestHeader("userPrinciple") HttpHeaders userPrinciple) {
-
-       log.info("Before calling retrieveAllUserDetails");
-       getRoleFromUserPrincipleObject(userPrinciple);
-       String access_token = getBearerToken();
-       log.info("access_token in retrieveAllUserDetails");
-       UserDetailsResponse response =  userManagementService.getAllUsers(access_token);
-       return ResponseEntity.status(200).body(response);
-    }
-
     @PostMapping(
             value = "/adduser",
             produces = APPLICATION_JSON_VALUE
     )
     public ResponseEntity<Object> addUser(@RequestHeader("UserPrinciple") HttpHeaders userPrinciple,
-                                          @RequestBody AddUserRequest request) {
+                                          @RequestBody UserRequest request) {
 
         log.info("{}::Before calling addUser", loggingComponentName);
         getRoleFromUserPrincipleObject(userPrinciple);
         String access_token = getBearerToken();
-        UserResponse response =  userManagementService.addUser(access_token,request);
+        AddUserRequest reqObj = new AddUserRequest(request.isAccountEnabled(),
+                request.getDisplayName(),request.getMailNickname(),request.getUserPrincipalName(),
+                request.getMobilePhone(),request.getPasswordProfile());
+        UserResponse response =  userManagementService.addUser(access_token,reqObj);
+        request.getGrpRoleIds().forEach(roleId -> {
+             userManagementService.createGroupForUser(access_token, roleId, response.getId());
+        });
+
         return ResponseEntity.status(201).body(response);
     }
 
@@ -139,7 +133,7 @@ public class UserManagementController {
         if (roleResponse == null) {
             throw new SearchResultNotFoundException("user group not found");
         }
-        response.setGroupName(roleResponse.getUserRoles().stream().filter(
+        response.setRoleName(roleResponse.getUserRoles().stream().filter(
                 userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
                 .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get());
         return ResponseEntity.status(200).body(response);
@@ -154,6 +148,7 @@ public class UserManagementController {
 
         AccessTokenResponse openIdTokenResponse = graphAPILoginFeignClient
                 .getAccessIdToken(environment.getProperty("tenant-id"),map);
+
         if (openIdTokenResponse == null) {
             throw new AccessTokenException(HttpStatus.valueOf(500),
                     "Graph Api Service Failed while bearer token generate");

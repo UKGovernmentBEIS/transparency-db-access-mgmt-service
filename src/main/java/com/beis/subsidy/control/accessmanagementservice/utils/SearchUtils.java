@@ -1,7 +1,13 @@
 package com.beis.subsidy.control.accessmanagementservice.utils;
 
+import com.beis.subsidy.control.accessmanagementservice.exception.AccessManagementException;
+import com.beis.subsidy.control.accessmanagementservice.exception.UnauthorisedAccessException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.math.BigDecimal;
@@ -126,5 +132,18 @@ public class SearchUtils {
 			yearsStr.append(days+" days ");
 		}
 		return yearsStr.toString();
+	}
+
+	public static  void beisAdminRoleValidation(ObjectMapper objectMapper,HttpHeaders userPrinciple) {
+		UserPrinciple userPrincipleObj = null;
+		String userPrincipleStr = userPrinciple.get("userPrinciple").get(0);
+		try {
+			userPrincipleObj = objectMapper.readValue(userPrincipleStr, UserPrinciple.class);
+			if (!AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrincipleObj.getRole())) {
+				throw new UnauthorisedAccessException("You are not authorised to access Admin Dashboard");
+			}
+		} catch(JsonProcessingException exception){
+			throw new AccessManagementException(HttpStatus.BAD_REQUEST,"JSON parsing Exception");
+		}
 	}
 }

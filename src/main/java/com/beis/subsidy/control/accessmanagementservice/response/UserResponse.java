@@ -37,5 +37,5 @@ public class UserResponse {
     private String userPrincipalName;
 
     @JsonProperty
-    private String groupName;
+    private String roleName;
   }

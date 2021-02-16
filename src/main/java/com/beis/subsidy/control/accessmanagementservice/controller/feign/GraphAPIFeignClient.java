@@ -1,18 +1,14 @@
 package com.beis.subsidy.control.accessmanagementservice.controller.feign;
 
 import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
-import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
+import com.beis.subsidy.control.accessmanagementservice.request.CreateUserInGroupRequest;
 import feign.Headers;
 import feign.RequestLine;
 import feign.Response;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-
-import javax.websocket.server.PathParam;
 
 @FeignClient(name = "GraphAPIFeignClient", url = "${graphApiUrl}")
 public interface GraphAPIFeignClient {
@@ -49,4 +45,18 @@ public interface GraphAPIFeignClient {
     @Headers({"Authorization: {authorization}","Content-Type: application/json"})
     Response getUserDetails(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
                               @PathVariable("id")  String id);
+
+    @PostMapping(value = "/v1.0/groups/{groupId}/members/$ref")
+    @RequestLine("POST /v1.0/groups/{groupId}/members/$ref")
+    @Headers({"Authorization: {authorization}","Content-Type: application/json"})
+    //@PostMapping(value = "/v1.0/groups/{groupId}/members/$ref",consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    Response createGroupForUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
+                               @PathVariable("groupId")  String groupId,
+                                @RequestBody CreateUserInGroupRequest request);
+
+    @PostMapping(value = "/v1.0/invitations")
+    @RequestLine("POST /v1.0/invitations")
+    @Headers({"Authorization: {authorization}","Content-Type: application/json"})
+    Response inviteUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
+                                @RequestBody InviteUserRequest request);
 }

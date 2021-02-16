@@ -7,8 +7,6 @@ import com.beis.subsidy.control.accessmanagementservice.response.UserRolesRespon
 
 public interface UserManagementService {
 
-    UserDetailsResponse getAllUsers(String token);
-
     UserDetailsResponse getUserRolesByGrpId(String token, String userId);
 
     UserResponse addUser(String token, AddUserRequest request);
@@ -18,4 +16,7 @@ public interface UserManagementService {
     int deleteUser(String token, String userId);
 
     UserResponse getUserDetails(String token, String userId);
+
+    int createGroupForUser(String token, String gaId, String id);
+
 }

@@ -5,10 +5,11 @@ import com.beis.subsidy.control.accessmanagementservice.exception.AccessManageme
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
 import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
+import com.beis.subsidy.control.accessmanagementservice.request.CreateUserInGroupRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserRoleResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserRolesResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.UserRoleResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
 import static com.beis.subsidy.control.accessmanagementservice.utils.JsonFeignResponseUtil.toResponseEntity;
 import feign.FeignException;
@@ -19,6 +20,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -34,38 +37,8 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Value("${loggingComponentName}")
     private String loggingComponentName;
 
-    @Override
-    public UserDetailsResponse getAllUsers(String token) {
-
-        // Graph API call.
-        UserDetailsResponse userDetailsResponse = null;
-        Response response = null;
-        Object clazz;
-        try {
-            long time1 = System.currentTimeMillis();
-            log.info("{}:: before calling toGraph Api is", loggingComponentName);
-            response = graphAPIFeignClient.getAllUserProfiles("Bearer " + token);
-            log.info("{}:: Time taken to call Graph Api is {}", loggingComponentName, (System.currentTimeMillis() - time1));
-
-            if (response.status() == 200) {
-                clazz = UserDetailsResponse.class;
-                ResponseEntity<Object> responseResponseEntity =  toResponseEntity(response, clazz);
-                userDetailsResponse
-                        = (UserDetailsResponse) responseResponseEntity.getBody();
-
-            } else if (response.status() == 404) {
-                throw new SearchResultNotFoundException("get users not found");
-            } else {
-                log.error("Graph Api is failed ::{}",response.status());
-            }
-
-        } catch (FeignException ex) {
-            log.error("{}:: UserProfile api failed:: status code {} & message {}",
-                        loggingComponentName, ex.status(), ex.getMessage());
-            throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
-        }
-        return userDetailsResponse;
-    }
+    @Value("${graphApiUrl}")
+    private String graphApiUrl;
 
     /**
      * Get the group info
@@ -116,12 +89,12 @@ public class UserManagementServiceImpl implements UserManagementService {
         log.info("{}::before calling toGraph Api in the mapGroupInfoToUser",loggingComponentName);
         userProfiles.forEach(userProfile -> {
             UserRolesResponse userRolesResponse = getUserGroup(token,userProfile.getId());
-            String groupName = userRolesResponse.getUserRoles().stream().filter(
+            String roleName = userRolesResponse.getUserRoles().stream().filter(
                     userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
                     .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get();
-           if(!StringUtils.isEmpty(groupName)) {
+           if(!StringUtils.isEmpty(roleName)) {
 
-               userProfile.setUserPrincipalName(groupName);
+               userProfile.setRoleName(roleName);
            }
 
         });
@@ -153,13 +126,13 @@ public class UserManagementServiceImpl implements UserManagementService {
             } else if (response.status() == 400) {
                 throw new InvalidRequestException("create user request is invalid");
             } else {
-                log.error("{}:: Graph Api failed:: status code {}",
+                log.error("{}:: Graph Api  addUser:: status code {}",
                         loggingComponentName, 500);
                 throw new AccessManagementException(HttpStatus.valueOf(500), "Create User Graph Api Failed");
             }
 
         } catch (FeignException ex) {
-            log.error("{}:: Graph Api failed:: status code {} & message {}",
+            log.error("{}:: Graph Api failed addUser:: status code {} & message {}",
                     loggingComponentName, ex.status(), ex.getMessage());
             throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
         }
@@ -228,6 +201,38 @@ public class UserManagementServiceImpl implements UserManagementService {
         return userResponse;
     }
 
+    @Override
+    public int createGroupForUser(String token, String groupId, String id) {
+        Response response = null;
+        int status = 0;
+        Object clazz;
+        String graphReq= graphApiUrl + "/v1.0/directoryObjects/{id}";
+        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+
+        try {
+            String req =  graphReq.replace("id", id);
+            CreateUserInGroupRequest request = new  CreateUserInGroupRequest(req);
+            response = graphAPIFeignClient.createGroupForUser("Bearer " + token,groupId,request);
+            if (response.status() == 204) {
+                 status = response.status();
+            } else if (response.status() == 400) {
+                log.error("{}:: Graph Api  createGroupForUser:: status code {}",
+                        loggingComponentName, 400);
+                throw new InvalidRequestException("create createGroupForUser request is invalid");
+            } else {
+                log.error("{}:: Graph Api  createGroupForUser:: status code {}",
+                        loggingComponentName, 500);
+                throw new AccessManagementException(HttpStatus.valueOf(500), "Create createGroupForUser Graph Api Failed");
+            }
+
+        } catch (FeignException ex) {
+            log.error("{}:: Graph Api failed createGroupForUser:: status code {} & message {}",
+                    loggingComponentName, ex.status(), ex.getMessage());
+            throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
+        }
+
+        return status;
+    }
 
     /**
      * This method is used to get the user group based on the userId
@@ -252,9 +257,6 @@ public class UserManagementServiceImpl implements UserManagementService {
                 ResponseEntity<Object> responseResponseEntity =  toResponseEntity(response, clazz);
                 userRolesResponse
                         = (UserRolesResponse) responseResponseEntity.getBody();
-                /*groupName = userRolesResponse.getUserRoles().stream().filter(
-                        userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
-                        .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get();*/
             }
 
         } catch (FeignException ex) {
