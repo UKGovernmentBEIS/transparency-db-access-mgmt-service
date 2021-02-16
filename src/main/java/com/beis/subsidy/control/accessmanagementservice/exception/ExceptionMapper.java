@@ -1,6 +1,7 @@
 package com.beis.subsidy.control.accessmanagementservice.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import java.util.Date;
 
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+
 /**
  *
  * Controller Advice - Custom Exception Handler
@@ -23,7 +26,10 @@ import java.util.Date;
 @Slf4j
 public class ExceptionMapper extends ResponseEntityExceptionHandler {
 
+    @Value("${loggingComponentName}")
+    private String loggingComponentName;
 
+    private static final String HANDLING_EXCEPTION_TEMPLATE = "{}:: handling exception: {}";
     /**
      * To handle all exceptions
      * @param ex - Exception object
@@ -54,6 +60,20 @@ public class ExceptionMapper extends ResponseEntityExceptionHandler {
         return new ResponseEntity(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(UnauthorisedAccessException.class)
+    public final ResponseEntity<Object> handleUnauthorisedAccessException(UnauthorisedAccessException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false));
+        return new ResponseEntity(exceptionResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AccessManagementException.class)
+    public final ResponseEntity<Object> handleAccessManagementException(UnauthorisedAccessException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false));
+        return new ResponseEntity(exceptionResponse,INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<Object> customValidationError(
             InvalidRequestException ex, WebRequest request) {
@@ -65,6 +85,7 @@ public class ExceptionMapper extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatus status, WebRequest request) {
+        log.info(HANDLING_EXCEPTION_TEMPLATE, loggingComponentName, ex.getMessage(), ex);
         ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), "Validation Failed",
                 ex.getBindingResult().toString());
         return new ResponseEntity(exceptionResponse, HttpStatus.BAD_REQUEST);
