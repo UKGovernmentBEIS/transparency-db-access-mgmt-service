@@ -133,7 +133,19 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     }
 
     @Override
-    public List<GrantingAuthorityResponse> getAllGA(UserPrinciple userPrincipleObj){
+    public List<GrantingAuthorityResponse> getAllGA(){
+        List<GrantingAuthorityResponse> allGa = new ArrayList<>();
+        List<GrantingAuthority>  authorityList = grantingAuthorityRepository.findAll();
+       if (authorityList.isEmpty()) {
+             throw new SearchResultNotFoundException("No results found in the response");
+        }
+        log.info("{}::Inside getAllGA method size {}::", loggingComponentName, authorityList.size());
+        authorityList.forEach(ga -> allGa.add(new GrantingAuthorityResponse(ga, null)));
+        return allGa;
+    }
+
+    @Override
+    public List<GrantingAuthorityResponse> getRoleBasedGAs(UserPrinciple userPrincipleObj){
         List<GrantingAuthorityResponse> allGa = new ArrayList<>();
         List<GrantingAuthority> authorityList = null;
         if (AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrincipleObj.getRole())) {
@@ -144,14 +156,14 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             authorityList = new ArrayList<>();
             authorityList.add(gaObj);
         }
-
         if (authorityList.isEmpty()) {
-             throw new SearchResultNotFoundException("No results found in the response");
+            throw new SearchResultNotFoundException("No results found in the response");
         }
-        log.info("{}::Inside getAllGA method size {}::", loggingComponentName, authorityList.size());
+        log.info("{}::Inside getRoleBasedGAs method size {}::", loggingComponentName, authorityList.size());
         authorityList.forEach(ga -> allGa.add(new GrantingAuthorityResponse(ga, null)));
         return allGa;
     }
+
     @Override
     public ResponseEntity<Object> updateAwardDetailsByAwardId(Long awardId, UpdateAwardDetailsRequest awardUpdateRequest) {
         Award award = awardRepository.findByAwardNumber(awardId);
