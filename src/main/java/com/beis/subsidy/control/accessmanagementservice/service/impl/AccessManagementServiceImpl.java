@@ -1,6 +1,7 @@
 package com.beis.subsidy.control.accessmanagementservice.service.impl;
 
 import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAPIFeignClient;
+import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAPILoginFeignClient;
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessManagementException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
 import com.beis.subsidy.control.accessmanagementservice.exception.UnauthorisedAccessException;
@@ -15,14 +16,18 @@ import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetai
 import com.beis.subsidy.control.accessmanagementservice.response.*;
 import com.beis.subsidy.control.accessmanagementservice.service.AccessManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.*;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import feign.FeignException;
 import feign.Response;
+import io.swagger.v3.core.util.Json;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.service.notify.NotificationClientException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,16 +36,19 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
-import static com.beis.subsidy.control.accessmanagementservice.utils.JsonFeignResponseUtil.toResponseEntity;
-
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
-@Slf4j
+
 @Service
+@Slf4j
 public class AccessManagementServiceImpl implements AccessManagementService {
     @Autowired
     private GrantingAuthorityRepository grantingAuthorityRepository;
@@ -50,16 +58,25 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
     @Autowired
     private SubsidyMeasureRepository subsidyMeasureRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
     
+   
     @Autowired
     GraphAPIFeignClient graphAPIFeignClient;
 
+
     @Value("${loggingComponentName}")
     private String loggingComponentName;
+    private static final ObjectMapper json = new ObjectMapper()
+			.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+    
     @Override
     public SearchResults findBEISAdminDashboardData(UserPrinciple userPrincipleObj) {
-        Pageable pagingSortAwards = PageRequest.of(0,AccessManagementConstant.TOP_GA_TO_DISPLAY, Sort.by("lastModifiedTimestamp").descending());
+        Pageable pagingSortAwards = PageRequest.of(0,AccessManagementConstant.TOP_GA_TO_DISPLAY,
+                Sort.by("lastModifiedTimestamp").descending());
         List<GrantingAuthority> top5GA = grantingAuthorityRepository
                 .findAll(pagingSortAwards).getContent();
         Map<String, Integer> gaUserActivityCount = grantingAuthorityCounts(userPrincipleObj);
@@ -124,9 +141,9 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         List<SubsidyMeasure> top5subsidyMeasure = new ArrayList<>();
         sortSubsidyMeasure(allSubObjList);
         if(allSubObjList != null && allSubObjList.size() > AccessManagementConstant.TOP_SM_TO_DISPLAY) {
-           allSubObjList.stream().limit(AccessManagementConstant.TOP_SM_TO_DISPLAY).forEach(sm -> {
-               top5subsidyMeasure.add(sm);
-           });
+            allSubObjList.stream().limit(AccessManagementConstant.TOP_SM_TO_DISPLAY).forEach(sm -> {
+                top5subsidyMeasure.add(sm);
+            });
         } else {
             top5subsidyMeasure.addAll(allSubObjList);
         }
@@ -146,13 +163,37 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     @Override
     public List<GrantingAuthorityResponse> getAllGA(){
         List<GrantingAuthorityResponse> allGa = new ArrayList<>();
-        List<GrantingAuthority> authorityList = grantingAuthorityRepository.findAll();
+        List<GrantingAuthority>  authorityList = grantingAuthorityRepository.findAll();
+       if (authorityList.isEmpty()) {
+             throw new SearchResultNotFoundException("No results found in the response");
+        }
+        log.info("{}::Inside getAllGA method size {}::", loggingComponentName, authorityList.size());
         authorityList.forEach(ga -> allGa.add(new GrantingAuthorityResponse(ga, null)));
         return allGa;
     }
+
+    @Override
+    public List<GrantingAuthorityResponse> getRoleBasedGAs(UserPrinciple userPrincipleObj){
+        List<GrantingAuthorityResponse> allGa = new ArrayList<>();
+        List<GrantingAuthority> authorityList = null;
+        if (AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrincipleObj.getRole())) {
+            authorityList = grantingAuthorityRepository.findAll();
+        } else {
+            GrantingAuthority gaObj = grantingAuthorityRepository.findByGrantingAuthorityName
+                    (userPrincipleObj.getGrantingAuthorityGroupName());
+            authorityList = new ArrayList<>();
+            authorityList.add(gaObj);
+        }
+        if (authorityList.isEmpty()) {
+            throw new SearchResultNotFoundException("No results found in the response");
+        }
+        log.info("{}::Inside getRoleBasedGAs method size {}::", loggingComponentName, authorityList.size());
+        authorityList.forEach(ga -> allGa.add(new GrantingAuthorityResponse(ga, null)));
+        return allGa;
+    }
+
     @Override
     public ResponseEntity<Object> updateAwardDetailsByAwardId(Long awardId, UpdateAwardDetailsRequest awardUpdateRequest,String accessToken) {
-    	
         Award award = awardRepository.findByAwardNumber(awardId);
         if (Objects.isNull(award)) {
 
@@ -161,7 +202,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         if (!StringUtils.isEmpty(awardUpdateRequest.getStatus())) {
             award.setStatus(awardUpdateRequest.getStatus());
         }
-           award.setLastModifiedTimestamp(LocalDate.now());
+        award.setLastModifiedTimestamp(LocalDate.now());
         if (!StringUtils.isEmpty(awardUpdateRequest.getSubsidyAmountExact())) {
             award.setSubsidyFullAmountExact(new BigDecimal(awardUpdateRequest.getSubsidyAmountExact()));
         }
@@ -205,28 +246,31 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 !StringUtils.isEmpty(awardUpdateRequest.getReason())) {
             award.setReason(awardUpdateRequest.getReason().trim());
         }
-      awardRepository.save(award);
-      //notification call START here
-     
-      UserDetailsResponse userDetailsResponse =getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
-      List<UserResponse> users= userDetailsResponse.getUserProfiles();
-     
-      for (UserResponse userResponse : users) {
-    	  
-    	  try {
-    		  log.info(":email sending to  {}",userResponse.getMail());
-			EmailUtils.sendEmail(userResponse.getMail());
-		} catch (NotificationClientException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-      //end Notification
-      return ResponseEntity.status(200).build();
+        awardRepository.save(award);
+        
+        //notification call START here
+        
+        UserDetailsResponse userDetailsResponse =getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
+        List<UserResponse> users= userDetailsResponse.getUserProfiles();
+       
+        for (UserResponse userResponse : users) {
+      	  
+      	  try {
+      		  log.info(":email sending to  {}",userResponse.getMail());
+  			EmailUtils.sendEmail(userResponse.getMail());
+  		} catch (NotificationClientException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		}
+  	}
+  	
+  	      //end Notification
+        return ResponseEntity.status(200).build();
     }
 
     @Override
-    public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status, Integer page, Integer recordsPerPage) {
+    public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status,
+                                                 Integer page, Integer recordsPerPage) {
         Specification<Award> awardSpecifications = getSpecificationAwardDetails(searchName, status);
 
         Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage);
@@ -280,45 +324,32 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         searchResults.setSubsidyMeasureUserActionCount(subObjUserActionCount);
     }
     private Map<String, Integer> subsidyMeasureCounts(UserPrinciple userPrincipleObj, List<SubsidyMeasure> subsidyMeasuresList) {
-        int totalSubsidyMeasures = subsidyMeasuresList.size();
-        int totalAwaitingSubsidyMeasures = 0;
-        int totalPublishedSubsidyMeasures = 0;
-        int totalDraftSubsidyMeasures = 0;
-        int totalDeletedSubsidyMeasures = 0;
+        int totalSubsidyScheme = subsidyMeasuresList.size();
+        int totalActiveScheme = 0;
+        int totalInactiveScheme = 0;
 
         if(subsidyMeasuresList != null && subsidyMeasuresList.size() > 0){
             for(SubsidyMeasure sm : subsidyMeasuresList){
-                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SM_AWAITING_APPROVAL)){
-                    totalAwaitingSubsidyMeasures++;
+                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SCHEME_ACTIVE)){
+                    totalActiveScheme++;
                 }
-                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SM_PUBLISHED_STATUS)){
-                    totalPublishedSubsidyMeasures++;
+                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SCHEME_INACTIVE)){
+                    totalInactiveScheme++;
                 }
-                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SM_DRAFT)){
-                    totalDraftSubsidyMeasures++;
-                }
-                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SM_DELETED)){
-                    totalDeletedSubsidyMeasures++;
-                }
-                /*if(sm.getCreatedBy().equals(userPrincipleObj.getUserName())){
-                    totalUserSubsidyMeasures++;
-                }*/
             }
         }
         Map<String, Integer> smUserActivityCount = new HashMap<>();
-        smUserActivityCount.put("totalSubsidyMeasures",totalSubsidyMeasures);
-        smUserActivityCount.put("totalAwaitingSubsidyMeasures",totalAwaitingSubsidyMeasures);
-        smUserActivityCount.put("totalPublishedSubsidyMeasures",totalPublishedSubsidyMeasures);
-        smUserActivityCount.put("totalDraftSubsidyMeasures",totalDraftSubsidyMeasures);
-        smUserActivityCount.put("totalDeletedSubsidyMeasures",totalDeletedSubsidyMeasures);
+        smUserActivityCount.put("totalSubsidyScheme",totalSubsidyScheme);
+        smUserActivityCount.put("totalActiveScheme",totalActiveScheme);
+        smUserActivityCount.put("totalInactiveScheme",totalInactiveScheme);
         return smUserActivityCount;
     }
     private Map<String, Integer> adminAwardCounts(UserPrinciple userPrincipleObj, List<Award> awardList) {
         int totalSubsidyAward = 0;
         int totalAwaitingAward = 0;
         int totalPublishedAward = 0;
-        int totalDraftAward = 0;
-        int totalDeletedAward = 0;
+        int totalRejectedAward = 0;
+        int totalInactiveAward = 0;
         if(awardList != null && awardList.size() >0){
             totalSubsidyAward = awardList.size();
             for(Award award : awardList){
@@ -328,22 +359,19 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_PUBLISHED_STATUS)){
                     totalPublishedAward++;
                 }
-                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_DRAFT)){
-                    totalDraftAward++;
+                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_REJECTED)){
+                    totalRejectedAward++;
                 }
-                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_DELETED)){
-                    totalDeletedAward++;
+                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_INACTIVE)){
+                    totalInactiveAward++;
                 }
-                /*if(award.getCreatedBy().equals(userPrincipleObj.getUserName())){
-                    totalUserSubsidyAward++;
-                }*/
             }
         }
         Map<String, Integer> awardUserActivityCount = new HashMap<>();
         awardUserActivityCount.put("totalSubsidyAward",totalSubsidyAward);
         awardUserActivityCount.put("totalAwaitingAward",totalAwaitingAward);
-        awardUserActivityCount.put("totalDraftAward",totalDraftAward);
-        awardUserActivityCount.put("totalDeletedAward",totalDeletedAward);
+        awardUserActivityCount.put("totalRejectedAward",totalRejectedAward);
+        awardUserActivityCount.put("totalInactiveAward",totalInactiveAward);
         awardUserActivityCount.put("totalPublishedAward",totalPublishedAward);
         return awardUserActivityCount;
     }
@@ -361,12 +389,6 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 } else if(ga.getStatus().equals(AccessManagementConstant.GA_INACTIVE_STATUS)){
                     totalInactiveGA++;
                 }
-                /*if(! ga.getStatus().equals(AccessManagementConstant.GA_PUBLISHED_STATUS)){
-                    totalNotPublishedGA++;
-                }
-                if(ga.getCreatedBy().equals(userPrincipleObj.getUserName())){
-                    totalGAPublishedByUser++;
-                }*/
             }
         }
         Map<String, Integer> gaUserActivityCount = new HashMap<>();
@@ -405,20 +427,19 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
                 // subsidyMeasureTitle from input parameter
                 .where(
-                      SearchUtils.checkNullOrEmptyString(searchName)
-                        ? null :AwardSpecificationUtils.subsidyMeasureTitle(searchName.trim())
-                    .or(SearchUtils.checkNullOrEmptyString(searchName)
-                        ? null :AwardSpecificationUtils.subsidyNumber(searchName.trim()))
-                    .or(SearchUtils.checkNullOrEmptyString(searchName)
-                       ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
-                    .or(SearchUtils.checkNullOrEmptyString(searchName)
-                        ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim())))
-                 // status from input parameter
+                        SearchUtils.checkNullOrEmptyString(searchName)
+                                ? null :AwardSpecificationUtils.subsidyMeasureTitle(searchName.trim())
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.subsidyNumber(searchName.trim()))
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim())))
+                // status from input parameter
                 .and(SearchUtils.checkNullOrEmptyString(status)
-                     ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
+                        ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
         return awardSpecifications;
     }
-    
     
     /**
      * Get the group info
@@ -460,4 +481,34 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         return userDetailsResponse;
     }
     
+    public static ResponseEntity<Object> toResponseEntity(Response response, Object clazz) {
+		Optional<Object> payload = decode(response, clazz);
+
+		return new ResponseEntity<>(payload.orElse(null), convertHeaders(response.headers()),
+				HttpStatus.valueOf(response.status()));
+	}
+
+	public static MultiValueMap<String, String> convertHeaders(Map<String, Collection<String>> responseHeaders) {
+		MultiValueMap<String, String> responseEntityHeaders = new LinkedMultiValueMap<>();
+		responseHeaders.entrySet().stream().forEach(e -> {
+			if (!(e.getKey().equalsIgnoreCase("request-context") ||
+					e.getKey().equalsIgnoreCase("x-powered-by")
+					|| e.getKey().equalsIgnoreCase("content-length"))) {
+				responseEntityHeaders.put(e.getKey(), new ArrayList<>(e.getValue()));
+			}
+		});
+
+		return responseEntityHeaders;
+	}
+
+	public static Optional<Object> decode(Response response, Object clazz) {
+		try {
+			return Optional
+					.of(json.readValue(response.body().asReader(Charset.defaultCharset()),
+							(Class<Object>) clazz));
+		} catch (IOException e) {
+			return Optional.empty();
+		}
+	}
+	
 }

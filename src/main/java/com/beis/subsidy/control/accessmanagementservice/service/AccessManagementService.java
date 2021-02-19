@@ -22,6 +22,8 @@ public interface AccessManagementService {
     SearchResults findGAEncoderDashboardData(UserPrinciple userPrincipleObj);
 
     List<GrantingAuthorityResponse> getAllGA();
+    List<GrantingAuthorityResponse> getRoleBasedGAs(UserPrinciple userPrincipleObj);
+
 
     SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status, Integer page, Integer recordsPerPage);
 }
