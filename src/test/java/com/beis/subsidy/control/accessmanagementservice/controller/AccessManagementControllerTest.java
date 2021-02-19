@@ -43,6 +43,9 @@ public class AccessManagementControllerTest {
     @Mock
     ObjectMapper objectMapper;
 
+    HttpHeaders headers = new HttpHeaders();
+
+
     @BeforeEach
     public void setUp() throws Exception {
         accessManagementServiceMock = mock(AccessManagementService.class);
@@ -112,28 +115,4 @@ public class AccessManagementControllerTest {
         } catch (IOException e) {
         }
     }
-
-    @Test
-    public void testRetrieveSubsidyAwardDetails() {
-        SearchSubsidyResultsResponse response = mock(SearchSubsidyResultsResponse.class);
-        when(accessManagementServiceMock.findMatchingSubsidyMeasureWithAwardDetails("searchname","status",1,10)).thenReturn(response);
-        ResponseEntity<SearchSubsidyResultsResponse> actualData  = accessManagementController.retrieveSubsidyAwardDetails("searchname","status",null,null);
-        assertThat(actualData).isNotNull();
-        verify(accessManagementServiceMock,times(1)).findMatchingSubsidyMeasureWithAwardDetails("searchname","status",1,10);
-
-    }
-
-    @Test
-    public void testupdateSubsidyAwardShouldThrowException() {
-        Assertions.assertThrows(InvalidRequestException.class, () -> {
-            accessManagementController.updateSubsidyAward(new UpdateAwardDetailsRequest(), null);
-        });
-    }
-
-    @Test
-    public void testupdateSubsidyAwardShouldThrowExceptionWhenReqIsNull() {
-        Assertions.assertThrows(InvalidRequestException.class, () -> {
-            accessManagementController.updateSubsidyAward(null, 1l);
-        });
-    }
-}
+ }
