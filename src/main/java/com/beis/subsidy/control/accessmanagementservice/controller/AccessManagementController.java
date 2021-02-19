@@ -116,11 +116,21 @@ public class AccessManagementController {
     }
 
     @GetMapping("/allga")
-    public ResponseEntity<List<GrantingAuthorityResponse>> findAllGA(@RequestHeader("userPrinciple") HttpHeaders userPrinciple){
+    public ResponseEntity<List<GrantingAuthorityResponse>> findAllGA(){
+        List<GrantingAuthorityResponse> allGA = null;
+        log.info("{}::Inside findAllGA method", loggingComponentName);
+
+        allGA = accessManagementService.getAllGA();
+
+        return new ResponseEntity<List<GrantingAuthorityResponse>>(allGA, HttpStatus.OK);
+    }
+
+    @GetMapping("/rolebasedgas")
+    public ResponseEntity<List<GrantingAuthorityResponse>> findRoleBasedGAs(@RequestHeader("userPrinciple") HttpHeaders userPrinciple){
         List<GrantingAuthorityResponse> allGA = null;
         log.info("{}::Inside findAllGA method", loggingComponentName);
         UserPrinciple userPrincipleObj = SearchUtils.isRoleValid(objectMapper,userPrinciple);
-        allGA = accessManagementService.getAllGA(userPrincipleObj);
+        allGA = accessManagementService.getRoleBasedGAs(userPrincipleObj);
 
         return new ResponseEntity<List<GrantingAuthorityResponse>>(allGA, HttpStatus.OK);
     }
