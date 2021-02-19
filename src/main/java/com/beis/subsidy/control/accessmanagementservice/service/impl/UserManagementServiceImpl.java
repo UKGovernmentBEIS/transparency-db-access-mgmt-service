@@ -127,8 +127,8 @@ public class UserManagementServiceImpl implements UserManagementService {
                 throw new InvalidRequestException("create user request is invalid");
             } else {
                 log.error("{}:: Graph Api  addUser:: status code {}",
-                        loggingComponentName, 500);
-                throw new AccessManagementException(HttpStatus.valueOf(500), "Create User Graph Api Failed");
+                        loggingComponentName, response.status());
+                throw new AccessManagementException(HttpStatus.valueOf(response.status()), "Create User Graph Api Failed");
             }
 
         } catch (FeignException ex) {
@@ -157,6 +157,8 @@ public class UserManagementServiceImpl implements UserManagementService {
             if (response.status() == 204) {
                 status = response.status();
             } else{
+                log.error("{}:: Graph Api failed:: status code {} & unable to delete the user {}",
+                        loggingComponentName,  response.status());
                 throw new AccessManagementException(HttpStatus.valueOf(response.status()),"unable to delete the user profile");
             }
 
@@ -215,9 +217,9 @@ public class UserManagementServiceImpl implements UserManagementService {
             response = graphAPIFeignClient.createGroupForUser("Bearer " + token,groupId,request);
             if (response.status() == 204) {
                  status = response.status();
-            } else if (response.status() == 400) {
+            } else if (response.status() == 400 || response.status() == 417) {
                 log.error("{}:: Graph Api  createGroupForUser:: status code {}",
-                        loggingComponentName, 400);
+                        loggingComponentName, response.status());
                 throw new InvalidRequestException("create createGroupForUser request is invalid");
             } else {
                 log.error("{}:: Graph Api  createGroupForUser:: status code {}",

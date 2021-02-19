@@ -15,6 +15,7 @@ import com.beis.subsidy.control.accessmanagementservice.response.UserRoleRespons
 import com.beis.subsidy.control.accessmanagementservice.response.UserRolesResponse;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.AccessManagementConstant;
+import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.UserPrinciple;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -110,7 +111,7 @@ public class UserManagementController {
                                                                @PathVariable("groupId") String groupId) {
 
         log.info("{}:: Before calling retrieveUserDetailsByGroupId",loggingComponentName);
-        getRoleFromUserPrincipleObject(userPrinciple);
+        SearchUtils.validateAdminGAApproverRoleFromUpObj(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         log.info("{}:: After access_token in retrieveUserDetailsByGroupId",loggingComponentName);
         UserDetailsResponse response =  userManagementService.getUserRolesByGrpId(access_token,groupId);
@@ -161,8 +162,8 @@ public class UserManagementController {
         String userPrincipleStr = userPrinciple.get("userPrinciple").get(0);
         try {
             userPrincipleObj = objectMapper.readValue(userPrincipleStr, UserPrinciple.class);
-            if (!Arrays.asList(AccessManagementConstant.ROLES).contains(userPrincipleObj.getRole())) {
-                throw new UnauthorisedAccessException("You are not authorised to view Admin Dashboard");
+            if (!Arrays.asList(AccessManagementConstant.ADMIN_ROLES).contains(userPrincipleObj.getRole())) {
+                throw new UnauthorisedAccessException("You are not authorised to Add or delete User");
             }
         } catch(JsonProcessingException exception){
             throw new AccessManagementException(HttpStatus.BAD_REQUEST,"JSON parsing Exception");

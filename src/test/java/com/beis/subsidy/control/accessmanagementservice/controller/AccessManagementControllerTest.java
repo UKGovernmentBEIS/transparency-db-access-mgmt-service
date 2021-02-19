@@ -43,6 +43,9 @@ public class AccessManagementControllerTest {
     @Mock
     ObjectMapper objectMapper;
 
+    HttpHeaders headers = new HttpHeaders();
+
+
     @BeforeEach
     public void setUp() throws Exception {
         accessManagementServiceMock = mock(AccessManagementService.class);
@@ -114,26 +117,61 @@ public class AccessManagementControllerTest {
     }
 
     @Test
-    public void testRetrieveSubsidyAwardDetails() {
+    public void testRetrieveSubsidyAwardDetails() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        UserPrinciple userPrincipleObj;
+        File upFile = new File("src\\test\\java\\com\\beis\\subsidy\\control\\accessmanagementservice\\data\\user_principle.json");
+        HttpHeaders headers = new HttpHeaders();
+        String userPrincipleStr = "{\"userName\":\"TEST\",\"password\":\"password123\",\"role\":\"BEIS Administrator\",\"grantingAuthorityGroupId\":\"123\",\"grantingAuthorityGroupName\":\"test\"}";
+        userPrincipleObj = mapper.readValue(upFile,UserPrinciple.class);
+        when(objectMapper.readValue(Mockito.anyString(), Mockito.eq(UserPrinciple.class))).thenReturn(userPrincipleObj);
+        List<String> userPrinciple = new ArrayList<>();
+        userPrinciple.add(userPrincipleStr);
+        headers.put("userPrinciple",userPrinciple);
         SearchSubsidyResultsResponse response = mock(SearchSubsidyResultsResponse.class);
-        when(accessManagementServiceMock.findMatchingSubsidyMeasureWithAwardDetails("searchname","status",1,10)).thenReturn(response);
-        ResponseEntity<SearchSubsidyResultsResponse> actualData  = accessManagementController.retrieveSubsidyAwardDetails("searchname","status",null,null);
+        when(accessManagementServiceMock.findMatchingSubsidyMeasureWithAwardDetails
+                ("searchname","status",1,10)).thenReturn(response);
+        ResponseEntity<SearchSubsidyResultsResponse> actualData  = accessManagementController
+                .retrieveSubsidyAwardDetails(headers,"searchname","status",null,null);
         assertThat(actualData).isNotNull();
-        verify(accessManagementServiceMock,times(1)).findMatchingSubsidyMeasureWithAwardDetails("searchname","status",1,10);
+        verify(accessManagementServiceMock,times(1))
+                .findMatchingSubsidyMeasureWithAwardDetails("searchname","status",1,10);
 
     }
 
     @Test
-    public void testupdateSubsidyAwardShouldThrowException() {
+    public void testupdateSubsidyAwardShouldThrowException() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        UserPrinciple userPrincipleObj;
+        File upFile = new File("src\\test\\java\\com\\beis\\subsidy\\control\\accessmanagementservice\\data\\user_principle.json");
+        HttpHeaders headers = new HttpHeaders();
+        String userPrincipleStr = "{\"userName\":\"TEST\",\"password\":\"password123\",\"role\":\"BEIS Administrator\",\"grantingAuthorityGroupId\":\"123\",\"grantingAuthorityGroupName\":\"test\"}";
+        userPrincipleObj = mapper.readValue(upFile,UserPrinciple.class);
+        when(objectMapper.readValue(Mockito.anyString(), Mockito.eq(UserPrinciple.class))).thenReturn(userPrincipleObj);
+        List<String> userPrinciple = new ArrayList<>();
+        userPrinciple.add(userPrincipleStr);
+        headers.put("userPrinciple",userPrinciple);
+
         Assertions.assertThrows(InvalidRequestException.class, () -> {
-            accessManagementController.updateSubsidyAward(new UpdateAwardDetailsRequest(), null);
+            accessManagementController.updateSubsidyAward(headers,new UpdateAwardDetailsRequest(), null);
         });
     }
 
     @Test
-    public void testupdateSubsidyAwardShouldThrowExceptionWhenReqIsNull() {
+    public void testupdateSubsidyAwardShouldThrowExceptionWhenReqIsNull() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        UserPrinciple userPrincipleObj;
+        File upFile = new File("src\\test\\java\\com\\beis\\subsidy\\control\\accessmanagementservice\\data\\user_principle.json");
+        HttpHeaders headers = new HttpHeaders();
+        String userPrincipleStr = "{\"userName\":\"TEST\",\"password\":\"password123\",\"role\":\"BEIS Administrator\",\"grantingAuthorityGroupId\":\"123\",\"grantingAuthorityGroupName\":\"test\"}";
+        userPrincipleObj = mapper.readValue(upFile,UserPrinciple.class);
+        when(objectMapper.readValue(Mockito.anyString(), Mockito.eq(UserPrinciple.class))).thenReturn(userPrincipleObj);
+        List<String> userPrinciple = new ArrayList<>();
+        userPrinciple.add(userPrincipleStr);
+        headers.put("userPrinciple",userPrinciple);
+
         Assertions.assertThrows(InvalidRequestException.class, () -> {
-            accessManagementController.updateSubsidyAward(null, 1l);
+            accessManagementController.updateSubsidyAward(headers,null, 1l);
         });
     }
 }

@@ -13,7 +13,9 @@ import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetai
 import com.beis.subsidy.control.accessmanagementservice.response.*;
 import com.beis.subsidy.control.accessmanagementservice.service.AccessManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class AccessManagementServiceImpl implements AccessManagementService {
     @Autowired
     private GrantingAuthorityRepository grantingAuthorityRepository;
@@ -39,9 +42,13 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     @Autowired
     private SubsidyMeasureRepository subsidyMeasureRepository;
 
+    @Value("${loggingComponentName}")
+    private String loggingComponentName;
+
     @Override
     public SearchResults findBEISAdminDashboardData(UserPrinciple userPrincipleObj) {
-        Pageable pagingSortAwards = PageRequest.of(0,AccessManagementConstant.TOP_GA_TO_DISPLAY, Sort.by("lastModifiedTimestamp").descending());
+        Pageable pagingSortAwards = PageRequest.of(0,AccessManagementConstant.TOP_GA_TO_DISPLAY,
+                Sort.by("lastModifiedTimestamp").descending());
         List<GrantingAuthority> top5GA = grantingAuthorityRepository
                 .findAll(pagingSortAwards).getContent();
         Map<String, Integer> gaUserActivityCount = grantingAuthorityCounts(userPrincipleObj);
@@ -126,9 +133,22 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     }
 
     @Override
-    public List<GrantingAuthorityResponse> getAllGA(){
+    public List<GrantingAuthorityResponse> getAllGA(UserPrinciple userPrincipleObj){
         List<GrantingAuthorityResponse> allGa = new ArrayList<>();
-        List<GrantingAuthority> authorityList = grantingAuthorityRepository.findAll();
+        List<GrantingAuthority> authorityList = null;
+        if (AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrincipleObj.getRole())) {
+            authorityList = grantingAuthorityRepository.findAll();
+        } else {
+            GrantingAuthority gaObj = grantingAuthorityRepository.findByGrantingAuthorityName
+                    (userPrincipleObj.getGrantingAuthorityGroupName());
+            authorityList = new ArrayList<>();
+            authorityList.add(gaObj);
+        }
+
+        if (authorityList.isEmpty()) {
+             throw new SearchResultNotFoundException("No results found in the response");
+        }
+        log.info("{}::Inside getAllGA method size {}::", loggingComponentName, authorityList.size());
         authorityList.forEach(ga -> allGa.add(new GrantingAuthorityResponse(ga, null)));
         return allGa;
     }
@@ -191,7 +211,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     }
 
     @Override
-    public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status, Integer page, Integer recordsPerPage) {
+    public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status,
+                                                 Integer page, Integer recordsPerPage) {
         Specification<Award> awardSpecifications = getSpecificationAwardDetails(searchName, status);
 
         Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage);
