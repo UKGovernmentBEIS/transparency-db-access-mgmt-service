@@ -1,11 +1,9 @@
 package com.beis.subsidy.control.accessmanagementservice.controller;
 
 import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAPILoginFeignClient;
-import com.beis.subsidy.control.accessmanagementservice.exception.AccessManagementException;
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
-import com.beis.subsidy.control.accessmanagementservice.exception.UnauthorisedAccessException;
 import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.UserRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
@@ -14,10 +12,7 @@ import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserRoleResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserRolesResponse;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
-import com.beis.subsidy.control.accessmanagementservice.utils.AccessManagementConstant;
 import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
-import com.beis.subsidy.control.accessmanagementservice.utils.UserPrinciple;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.Arrays;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -71,7 +65,7 @@ public class UserManagementController {
                                           @RequestBody UserRequest request) {
 
         log.info("{}::Before calling addUser", loggingComponentName);
-        getRoleFromUserPrincipleObject(userPrinciple);
+        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         AddUserRequest reqObj = new AddUserRequest(request.isAccountEnabled(),
                 request.getDisplayName(),request.getMailNickname(),request.getUserPrincipalName(),
@@ -92,7 +86,7 @@ public class UserManagementController {
                                           @PathVariable("userId") String userId) {
 
         log.info("{}::Before calling deleteUser", loggingComponentName);
-        getRoleFromUserPrincipleObject(userPrinciple);
+        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         if (StringUtils.isEmpty(userId)) {
             log.error("{}:: userId is empty:: {}",loggingComponentName, userId);
             throw new InvalidRequestException("userId is null or empty");
@@ -126,7 +120,7 @@ public class UserManagementController {
                                                                @PathVariable("userId") String userId) {
 
         log.info("{}:: Before calling retrieveUserDetailsId",loggingComponentName);
-        getRoleFromUserPrincipleObject(userPrinciple);
+        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         log.info("{}:: After access_token in retrieveUserDetailsId",loggingComponentName);
         UserResponse response = userManagementService.getUserDetails(access_token,userId);
@@ -156,18 +150,4 @@ public class UserManagementController {
         }
         return openIdTokenResponse.getAccessToken();
     }
-
-    public  void getRoleFromUserPrincipleObject(HttpHeaders userPrinciple) {
-        UserPrinciple userPrincipleObj = null;
-        String userPrincipleStr = userPrinciple.get("userPrinciple").get(0);
-        try {
-            userPrincipleObj = objectMapper.readValue(userPrincipleStr, UserPrinciple.class);
-            if (!Arrays.asList(AccessManagementConstant.ADMIN_ROLES).contains(userPrincipleObj.getRole())) {
-                throw new UnauthorisedAccessException("You are not authorised to Add or delete User");
-            }
-        } catch(JsonProcessingException exception){
-            throw new AccessManagementException(HttpStatus.BAD_REQUEST,"JSON parsing Exception");
-        }
-    }
-
 }

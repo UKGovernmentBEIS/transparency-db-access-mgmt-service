@@ -134,7 +134,7 @@ public class AccessManagementController {
                                                      @PathVariable("awardNumber") Long awardNumber) {
 
          log.info("{}:: Before calling updateSubsidyAward::{}", loggingComponentName);
-         SearchUtils.isRoleValid(objectMapper,userPrinciple);
+         SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
          if (StringUtils.isEmpty(awardNumber) || Objects.isNull(awardUpdateRequest)) {
               throw new InvalidRequestException("Bad Request AwardId is null or requestBody is null");
          }

@@ -178,4 +178,18 @@ public class SearchUtils {
 		return userPrincipleObj;
 	}
 
+	public static UserPrinciple adminRoleValidFromUserPrincipleObject(ObjectMapper objectMapper,HttpHeaders userPrinciple) {
+		UserPrinciple userPrincipleObj = null;
+		String userPrincipleStr = userPrinciple.get("userPrinciple").get(0);
+		try {
+			userPrincipleObj = objectMapper.readValue(userPrincipleStr, UserPrinciple.class);
+			if (!Arrays.asList(AccessManagementConstant.ADMIN_ROLES).contains(userPrincipleObj.getRole())) {
+				throw new UnauthorisedAccessException("You are not authorised to Add or delete User");
+			}
+		} catch(JsonProcessingException exception){
+			throw new AccessManagementException(HttpStatus.BAD_REQUEST,"JSON parsing Exception");
+		}
+		return userPrincipleObj;
+	}
+
 }
