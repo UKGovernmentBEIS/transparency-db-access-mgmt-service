@@ -21,6 +21,33 @@
 		<spring-cloud.version>Hoxton.SR5</spring-cloud.version>
 		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
 	</properties>
+	
+	<profiles>
+        <profile>
+            <repositories>
+                <repository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>bintray-gov-uk-notify-maven</id>
+                    <name>bintray</name>
+                    <url>https://dl.bintray.com/gov-uk-notify/maven</url>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>bintray-gov-uk-notify-maven</id>
+                    <name>bintray-plugins</name>
+                    <url>https://dl.bintray.com/gov-uk-notify/maven</url>
+                </pluginRepository>
+            </pluginRepositories>
+            <id>bintray</id>
+        </profile>
+    </profiles>
+   
 
 	<dependencies>
 		<dependency>
