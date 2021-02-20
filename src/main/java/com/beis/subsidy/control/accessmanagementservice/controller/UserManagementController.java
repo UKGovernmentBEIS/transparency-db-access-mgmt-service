@@ -78,6 +78,7 @@ public class UserManagementController {
              userManagementService.createGroupForUser(access_token, roleId, response.getId());
         });
         //notification starts here
+        request.getPasswordProfile().getPassword();
         try {
     		  log.info(":email sending to  {}",response.getMail());
 			EmailUtils.sendEmail(response.getMail());
