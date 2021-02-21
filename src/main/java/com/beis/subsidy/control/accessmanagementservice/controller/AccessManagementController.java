@@ -144,7 +144,7 @@ public class AccessManagementController {
                                                      @PathVariable("awardNumber") Long awardNumber) {
 
          log.info("{}:: Before calling updateSubsidyAward::{}", loggingComponentName);
-         SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        UserPrinciple userPrincipleResp = SearchUtils.validateAdminGAApproverRoleFromUpObj(objectMapper,userPrinciple);
          if (StringUtils.isEmpty(awardNumber) || Objects.isNull(awardUpdateRequest)) {
               throw new InvalidRequestException("Bad Request AwardId is null or requestBody is null");
          }
@@ -162,7 +162,7 @@ public class AccessManagementController {
              @RequestParam(value = "recordsPerPage", required = false) Integer recordsPerPage) {
 
         log.info("{}:: Before calling retrieveSubsidyAwardDetails::{}", loggingComponentName);
-        SearchUtils.isRoleValid(objectMapper,userPrinciple);
+        UserPrinciple userPrincipleObj = SearchUtils.isRoleValid(objectMapper,userPrinciple);
         //Set Default Page records
         if(recordsPerPage == null) {
             recordsPerPage = 10;
@@ -172,7 +172,7 @@ public class AccessManagementController {
             page = 1;
         }
         SearchSubsidyResultsResponse searchResults = accessManagementService.findMatchingSubsidyMeasureWithAwardDetails(
-                searchName, status, page, recordsPerPage);
+                searchName, status, page, recordsPerPage, userPrincipleObj);
         return new ResponseEntity<SearchSubsidyResultsResponse>(searchResults, HttpStatus.OK);
     }
 }

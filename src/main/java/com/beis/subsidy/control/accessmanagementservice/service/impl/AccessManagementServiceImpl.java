@@ -10,16 +10,22 @@ import com.beis.subsidy.control.accessmanagementservice.repository.AwardReposito
 import com.beis.subsidy.control.accessmanagementservice.repository.GrantingAuthorityRepository;
 import com.beis.subsidy.control.accessmanagementservice.repository.SubsidyMeasureRepository;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetailsRequest;
-import com.beis.subsidy.control.accessmanagementservice.response.*;
+import com.beis.subsidy.control.accessmanagementservice.response.GrantingAuthorityResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.SearchSubsidyResultsResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.SearchResults;
 import com.beis.subsidy.control.accessmanagementservice.service.AccessManagementService;
-import com.beis.subsidy.control.accessmanagementservice.utils.*;
+import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
+import com.beis.subsidy.control.accessmanagementservice.utils.UserPrinciple;
+import com.beis.subsidy.control.accessmanagementservice.utils.AccessManagementConstant;
+import com.beis.subsidy.control.accessmanagementservice.utils.SubsidyMeasureSpecificationUtils;
+import com.beis.subsidy.control.accessmanagementservice.utils.AwardSpecificationUtils;
+import com.beis.subsidy.control.accessmanagementservice.utils.GACreatedBySpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -27,8 +33,13 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+
 
 @Service
 @Slf4j
@@ -47,43 +58,18 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
     @Override
     public SearchResults findBEISAdminDashboardData(UserPrinciple userPrincipleObj) {
-        Pageable pagingSortAwards = PageRequest.of(0,AccessManagementConstant.TOP_GA_TO_DISPLAY,
-                Sort.by("lastModifiedTimestamp").descending());
-        List<GrantingAuthority> top5GA = grantingAuthorityRepository
-                .findAll(pagingSortAwards).getContent();
-        Map<String, Integer> gaUserActivityCount = grantingAuthorityCounts(userPrincipleObj);
 
+        Map<String, Integer> gaUserActivityCount = grantingAuthorityCounts(userPrincipleObj);
         List<Award> awardList = awardRepository.findAll();
         Map<String, Integer> awardUserActivityCount = adminAwardCounts(userPrincipleObj, awardList);
-        List<Award> top5Awards = new ArrayList<>();
-        sortAwards(awardList);
-        if(awardList != null && awardList.size() > AccessManagementConstant.TOP_AWARD_TO_DISPLAY){
-            awardList.stream().limit(AccessManagementConstant.TOP_AWARD_TO_DISPLAY).forEach(award -> {
-                top5Awards.add(award);
-            });
-        }else {
-            top5Awards.addAll(awardList);
-        }
 
         List<SubsidyMeasure> subsidyMeasuresList = subsidyMeasureRepository.findAll();
         Map<String, Integer> smUserActivityCount = subsidyMeasureCounts(userPrincipleObj, subsidyMeasuresList);
-        List<SubsidyMeasure> top5subsidyMeasures = new ArrayList<>();
-        sortSubsidyMeasure(subsidyMeasuresList);
-        if(subsidyMeasuresList != null && subsidyMeasuresList.size() > AccessManagementConstant.TOP_SM_TO_DISPLAY){
-            subsidyMeasuresList.stream().limit(AccessManagementConstant.TOP_SM_TO_DISPLAY).forEach(subsidyMeasure -> {
-                top5subsidyMeasures.add(subsidyMeasure);
-            });
-        } else {
-            top5subsidyMeasures.addAll(subsidyMeasuresList);
-        }
+
         SearchResults searchResults = null;
-        if (top5GA.size() > 0) {
-            searchResults = new SearchResults(top5GA,gaUserActivityCount);
-            addAwardToSearchResult(top5Awards, awardUserActivityCount, searchResults);
-            addSubsidiesToSearchResults(searchResults, top5subsidyMeasures, smUserActivityCount);
-        } else {
-            throw new SearchResultNotFoundException("Granting Authority Results NotFound");
-        }
+        searchResults = new SearchResults(gaUserActivityCount);
+        addAwardToSearchResult(awardUserActivityCount,searchResults);
+        addSubsidiesToSearchResults(searchResults, smUserActivityCount);
         return searchResults;
     }
 
@@ -95,31 +81,13 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             throw new UnauthorisedAccessException("Invalid granting authority name");
         }
 
-        List<Award> top5Awards = new ArrayList<>();
         List<Award> allAwardList = awardRepository.findAll(getAwardSpecification(gaId));
         Map<String, Integer> awardUserActionCount = adminAwardCounts(userPrincipleObj, allAwardList);
-        sortAwards(allAwardList);
-        if(allAwardList != null && allAwardList.size() > AccessManagementConstant.TOP_AWARD_TO_DISPLAY){
-            allAwardList.stream().limit(AccessManagementConstant.TOP_AWARD_TO_DISPLAY).forEach(award -> {
-                top5Awards.add(award);
-            });
-        } else {
-            top5Awards.addAll(allAwardList);
-        }
-        addAwardToSearchResult(top5Awards, awardUserActionCount, searchResults);
+        addAwardToSearchResult(awardUserActionCount, searchResults);
 
         List<SubsidyMeasure> allSubObjList = subsidyMeasureRepository.findAll(subsidyMeasureByGrantingAuthority(gaId));
         Map<String, Integer> subObjUserActionCount = subsidyMeasureCounts(userPrincipleObj, allSubObjList);
-        List<SubsidyMeasure> top5subsidyMeasure = new ArrayList<>();
-        sortSubsidyMeasure(allSubObjList);
-        if(allSubObjList != null && allSubObjList.size() > AccessManagementConstant.TOP_SM_TO_DISPLAY) {
-            allSubObjList.stream().limit(AccessManagementConstant.TOP_SM_TO_DISPLAY).forEach(sm -> {
-                top5subsidyMeasure.add(sm);
-            });
-        } else {
-            top5subsidyMeasure.addAll(allSubObjList);
-        }
-        addSubsidiesToSearchResults(searchResults, top5subsidyMeasure, subObjUserActionCount);
+        addSubsidiesToSearchResults(searchResults, subObjUserActionCount);
         return searchResults;
     }
     @Override
@@ -224,15 +192,28 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
     @Override
     public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status,
-                                                 Integer page, Integer recordsPerPage) {
+                                                 Integer page, Integer recordsPerPage, UserPrinciple userPrinciple) {
+        Page<Award> pageAwards = null;
+        List<Award> awardResults = null;
         Specification<Award> awardSpecifications = getSpecificationAwardDetails(searchName, status);
 
         Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage);
 
-        Page<Award> pageAwards = awardRepository.findAll(awardSpecifications, pagingSortAwards);
+        if (AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrinciple.getRole().trim())) {
+            pageAwards = awardRepository.findAll(awardSpecifications, pagingSortAwards);
+            awardResults = pageAwards.getContent();
 
-        List<Award> awardResults = pageAwards.getContent();
+        } else {
 
+            Long gaId = getGrantingAuthorityIdByName(userPrinciple.getGrantingAuthorityGroupName());
+            if(gaId == null || gaId <= 0){
+                throw new UnauthorisedAccessException("Invalid granting authority name");
+            }
+
+            pageAwards = awardRepository.findAll(getAwardSpecification(gaId),pagingSortAwards);
+            awardResults = pageAwards.getContent();
+
+        }
         SearchSubsidyResultsResponse searchResults = null;
 
         if (!awardResults.isEmpty()) {
@@ -259,23 +240,12 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                     .compareTo(sm1.getLastModifiedTimestamp()));
         }
     }
-    private void addAwardToSearchResult(List<Award> top5Awards, Map<String, Integer> awardUserActivityCount, SearchResults searchResults) {
-        if(top5Awards.size() > 0){
-            searchResults.setAwardResponse(top5Awards
-                    .stream()
-                    .map(award -> new AwardResponse(award))
-                    .collect(Collectors.toList()));
-        }
+    private void addAwardToSearchResult(Map<String, Integer> awardUserActivityCount, SearchResults searchResults) {
+
         searchResults.setAwardUserActionCount(awardUserActivityCount);
     }
-    private void addSubsidiesToSearchResults(SearchResults searchResults, List<SubsidyMeasure> top5subsidyMeasure, Map<String, Integer> subObjUserActionCount) {
-        if(top5subsidyMeasure.size() > 0){
-            searchResults.setSubsidyMeasureResponse(top5subsidyMeasure
-                    .stream()
-                    .map(sm -> new SubsidyMeasureResponse(sm))
-                    .collect(Collectors.toList()));
-        }
-        searchResults.setSubsidyMeasureUserActionCount(subObjUserActionCount);
+    private void addSubsidiesToSearchResults(SearchResults searchResults, Map<String, Integer> subObjUserActionCount) {
+          searchResults.setSubsidyMeasureUserActionCount(subObjUserActionCount);
     }
     private Map<String, Integer> subsidyMeasureCounts(UserPrinciple userPrincipleObj, List<SubsidyMeasure> subsidyMeasuresList) {
         int totalSubsidyScheme = subsidyMeasuresList.size();
@@ -349,15 +319,16 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         gaUserActivityCount.put("totalGrantingAuthority",totalGrantingAuthority);
         gaUserActivityCount.put("totalActiveGA",totalActiveGA);
         gaUserActivityCount.put("totalDeactiveGA",totalInactiveGA);
-        //gaUserActivityCount.put("totalNotPublishedGA",totalNotPublishedGA);
         return gaUserActivityCount;
     }
+
     private Specification<GrantingAuthority> getGACreatedByUserSpecification(UserPrinciple userPrincipleObj) {
         return Specification.where(
                 userPrincipleObj.getUserName() == null || userPrincipleObj.getUserName().isEmpty()
                         ? null : GACreatedBySpecification.grantingAuthorityCreatedBy(userPrincipleObj.getUserName())
         );
     }
+
     private Specification<SubsidyMeasure> subsidyMeasureByGrantingAuthority(Long gaId) {
         return Specification.where(
                 SubsidyMeasureSpecificationUtils.subsidyMeasureByGrantingAuthority(gaId)

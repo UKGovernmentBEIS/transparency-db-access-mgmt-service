@@ -1,6 +1,5 @@
 package com.beis.subsidy.control.accessmanagementservice.response;
 
-import com.beis.subsidy.control.accessmanagementservice.model.Award;
 import com.beis.subsidy.control.accessmanagementservice.model.GrantingAuthority;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -8,7 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
