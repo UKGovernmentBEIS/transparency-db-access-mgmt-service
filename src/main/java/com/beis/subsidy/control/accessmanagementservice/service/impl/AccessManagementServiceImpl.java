@@ -1,5 +1,7 @@
 package com.beis.subsidy.control.accessmanagementservice.service.impl;
 
+import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAPIFeignClient;
+import com.beis.subsidy.control.accessmanagementservice.exception.AccessManagementException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
 import com.beis.subsidy.control.accessmanagementservice.exception.UnauthorisedAccessException;
 import com.beis.subsidy.control.accessmanagementservice.model.Award;
@@ -12,32 +14,50 @@ import com.beis.subsidy.control.accessmanagementservice.repository.SubsidyMeasur
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetailsRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.GrantingAuthorityResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchSubsidyResultsResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchResults;
 import com.beis.subsidy.control.accessmanagementservice.service.AccessManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.UserPrinciple;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import feign.FeignException;
+import feign.Response;
+
 import com.beis.subsidy.control.accessmanagementservice.utils.AccessManagementConstant;
 import com.beis.subsidy.control.accessmanagementservice.utils.SubsidyMeasureSpecificationUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.AwardSpecificationUtils;
+import com.beis.subsidy.control.accessmanagementservice.utils.EmailUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.GACreatedBySpecification;
 import lombok.extern.slf4j.Slf4j;
+import uk.gov.service.notify.NotificationClientException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 
 
@@ -55,6 +75,16 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
     @Value("${loggingComponentName}")
     private String loggingComponentName;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
+    
+   
+    @Autowired
+    GraphAPIFeignClient graphAPIFeignClient;
+    
+    private static final ObjectMapper json = new ObjectMapper()
+			.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public SearchResults findBEISAdminDashboardData(UserPrinciple userPrincipleObj) {
@@ -133,7 +163,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     }
 
     @Override
-    public ResponseEntity<Object> updateAwardDetailsByAwardId(Long awardId, UpdateAwardDetailsRequest awardUpdateRequest) {
+    public ResponseEntity<Object> updateAwardDetailsByAwardId(Long awardId, UpdateAwardDetailsRequest awardUpdateRequest,String accessToken) {
         Award award = awardRepository.findByAwardNumber(awardId);
         if (Objects.isNull(award)) {
 
@@ -187,6 +217,24 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             award.setReason(awardUpdateRequest.getReason().trim());
         }
         awardRepository.save(award);
+        
+//notification call START here
+        
+        UserDetailsResponse userDetailsResponse =getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
+        List<UserResponse> users= userDetailsResponse.getUserProfiles();
+       
+        for (UserResponse userResponse : users) {
+      	  
+      	  try {
+      		  log.info(":email sending to  {}",userResponse.getMail());
+  			EmailUtils.sendEmail(userResponse.getMail());
+  		} catch (NotificationClientException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		}
+  	}
+  	
+  	      //end Notification
         return ResponseEntity.status(200).build();
     }
 
@@ -365,4 +413,74 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                         ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
         return awardSpecifications;
     }
+    
+    /**
+     * Get the group info
+     * @param token
+     * @param groupId
+     * @return
+     */
+    
+    public UserDetailsResponse getUserRolesByGrpId(String token, String groupId) {
+        // Graph API call.
+        UserDetailsResponse userDetailsResponse = null;
+        Response response = null;
+        Object clazz;
+        try {
+            long time1 = System.currentTimeMillis();
+            log.info("{}::before calling toGraph Api is and groupId is {}",loggingComponentName,groupId);
+            response = graphAPIFeignClient.getUsersByGroupId("Bearer " + token,groupId);
+            log.info("{}:: Time taken to call Graph Api is {}", loggingComponentName, (System.currentTimeMillis() - time1));
+
+            if (response.status() == 200) {
+                clazz = UserDetailsResponse.class;
+                ResponseEntity<Object> responseResponseEntity =  toResponseEntity(response, clazz);
+                userDetailsResponse
+                        = (UserDetailsResponse) responseResponseEntity.getBody();
+               
+            } else if (response.status() == 404) {
+                throw new SearchResultNotFoundException("Group Id not found");
+            } else {
+                log.error("get user details by groupId Graph Api is failed ::{}",response.status());
+                throw new AccessManagementException(HttpStatus.valueOf(response.status()),
+                        "Graph Api failed");
+            }
+
+        } catch (FeignException ex) {
+            log.error("{}:: get  groupId Graph Api is failed:: status code {} & message {}",
+                    loggingComponentName, ex.status(), ex.getMessage());
+            throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
+        }
+        return userDetailsResponse;
+    }
+    
+    public static ResponseEntity<Object> toResponseEntity(Response response, Object clazz) {
+		Optional<Object> payload = decode(response, clazz);
+
+		return new ResponseEntity<>(payload.orElse(null), convertHeaders(response.headers()),
+				HttpStatus.valueOf(response.status()));
+	}
+
+	public static MultiValueMap<String, String> convertHeaders(Map<String, Collection<String>> responseHeaders) {
+		MultiValueMap<String, String> responseEntityHeaders = new LinkedMultiValueMap<>();
+		responseHeaders.entrySet().stream().forEach(e -> {
+			if (!(e.getKey().equalsIgnoreCase("request-context") ||
+					e.getKey().equalsIgnoreCase("x-powered-by")
+					|| e.getKey().equalsIgnoreCase("content-length"))) {
+				responseEntityHeaders.put(e.getKey(), new ArrayList<>(e.getValue()));
+			}
+		});
+
+		return responseEntityHeaders;
+	}
+
+	public static Optional<Object> decode(Response response, Object clazz) {
+		try {
+			return Optional
+					.of(json.readValue(response.body().asReader(Charset.defaultCharset()),
+							(Class<Object>) clazz));
+		} catch (IOException e) {
+			return Optional.empty();
+		}
+	}
 }
