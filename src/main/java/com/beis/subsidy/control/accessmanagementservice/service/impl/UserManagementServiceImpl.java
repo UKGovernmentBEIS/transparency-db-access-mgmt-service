@@ -208,7 +208,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         Response response = null;
         int status = 0;
         Object clazz;
-        String graphReq= graphApiUrl + "/v1.0/directoryObjects/{id}";
+        String graphReq= "https://graph.microsoft.com/v1.0/directoryObjects/{id}";
         MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 
         try {
@@ -223,8 +223,8 @@ public class UserManagementServiceImpl implements UserManagementService {
                 throw new InvalidRequestException("create createGroupForUser request is invalid");
             } else {
                 log.error("{}:: Graph Api  createGroupForUser:: status code {}",
-                        loggingComponentName, 500);
-                throw new AccessManagementException(HttpStatus.valueOf(500), "Create createGroupForUser Graph Api Failed");
+                        loggingComponentName, response.status());
+                throw new AccessManagementException(HttpStatus.valueOf(response.status()), "Create createGroupForUser Graph Api Failed");
             }
 
         } catch (FeignException ex) {
@@ -249,10 +249,9 @@ public class UserManagementServiceImpl implements UserManagementService {
         Object clazz;
         String groupName = null;
         try {
-            long time1 = System.currentTimeMillis();
             log.info("Before calling to Graph Api getUserGroupName");
             response = graphAPIFeignClient.getUserGroupName("Bearer " + token,userId);
-            log.info("{}:: Time taken to call Graph Api is {}", loggingComponentName, (System.currentTimeMillis() - time1));
+            log.info("{}:: After the call Graph Api is {}", loggingComponentName);
 
             if (response.status() == 200) {
                 clazz = UserRolesResponse.class;

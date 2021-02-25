@@ -159,7 +159,8 @@ public class AccessManagementController {
              HttpHeaders userPrinciple, @RequestParam(value = "searchName",required = false) String searchName,
              @RequestParam(value = "status",required = false) String status,
              @RequestParam(value = "page", required = false) Integer page,
-             @RequestParam(value = "recordsPerPage", required = false) Integer recordsPerPage) {
+             @RequestParam(value = "recordsPerPage", required = false) Integer recordsPerPage,
+             @RequestParam(value = "sortBy", required = false)  String[] sortBy) {
 
         log.info("{}:: Before calling retrieveSubsidyAwardDetails::{}", loggingComponentName);
         UserPrinciple userPrincipleObj = SearchUtils.isRoleValid(objectMapper,userPrinciple);
@@ -172,7 +173,7 @@ public class AccessManagementController {
             page = 1;
         }
         SearchSubsidyResultsResponse searchResults = accessManagementService.findMatchingSubsidyMeasureWithAwardDetails(
-                searchName, status, page, recordsPerPage, userPrincipleObj);
+                searchName, status, page, recordsPerPage, userPrincipleObj, sortBy);
         return new ResponseEntity<SearchSubsidyResultsResponse>(searchResults, HttpStatus.OK);
     }
 }

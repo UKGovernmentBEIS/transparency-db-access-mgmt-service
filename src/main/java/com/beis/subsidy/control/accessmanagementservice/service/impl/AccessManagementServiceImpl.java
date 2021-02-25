@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -192,12 +193,13 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
     @Override
     public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status,
-                                                 Integer page, Integer recordsPerPage, UserPrinciple userPrinciple) {
+                                                 Integer page, Integer recordsPerPage, UserPrinciple userPrinciple,String[] sortBy) {
         Page<Award> pageAwards = null;
         List<Award> awardResults = null;
         Specification<Award> awardSpecifications = getSpecificationAwardDetails(searchName, status);
 
-        Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage);
+        List<Sort.Order> orders = getOrderByCondition(sortBy);
+        Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage,Sort.by(orders));
 
         if (AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrinciple.getRole().trim())) {
             pageAwards = awardRepository.findAll(awardSpecifications, pagingSortAwards);
@@ -210,9 +212,13 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 throw new UnauthorisedAccessException("Invalid granting authority name");
             }
 
-            pageAwards = awardRepository.findAll(getAwardSpecification(gaId),pagingSortAwards);
-            awardResults = pageAwards.getContent();
-
+            if(!StringUtils.isEmpty(searchName) || !StringUtils.isEmpty(status)) {
+                pageAwards = awardRepository.findAll(awardSpecifications,pagingSortAwards);
+                awardResults = pageAwards.getContent();
+            } else {
+                pageAwards = awardRepository.findAll(getAwardSpecification(gaId),pagingSortAwards);
+                awardResults = pageAwards.getContent();
+            }
         }
         SearchSubsidyResultsResponse searchResults = null;
 
@@ -364,5 +370,31 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 .and(SearchUtils.checkNullOrEmptyString(status)
                         ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
         return awardSpecifications;
+    }
+
+    private List<Sort.Order> getOrderByCondition(String[] sortBy) {
+
+        List<Sort.Order> orders = new ArrayList<Sort.Order>();
+
+        if (sortBy != null && sortBy.length > 0 && sortBy[0].contains("-")) {
+            // will sort more than 2 fields
+            // sortOrder="field, direction"
+            for (String sortOrder : sortBy) {
+                String[] _sort = sortOrder.split("-");
+                orders.add(new Sort.Order(getSortDirection(_sort[1]), _sort[0]));
+            }
+        } else {
+            //Default sort - Legal Granting Date with recent one at top
+            orders.add(new Sort.Order(getSortDirection("desc"), "legalGrantingDate"));
+        }
+        return orders;
+    }
+
+    private Sort.Direction getSortDirection(String direction) {
+        Sort.Direction sortDir = Sort.Direction.ASC;
+        if (direction.equals("desc")) {
+            sortDir = Sort.Direction.DESC;
+        }
+        return sortDir;
     }
 }

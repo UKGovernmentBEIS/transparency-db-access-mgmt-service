@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Objects;
+
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RequestMapping(path = "/usermanagement")
@@ -67,7 +69,7 @@ public class UserManagementController {
         log.info("{}::Before calling addUser", loggingComponentName);
         SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
-        AddUserRequest reqObj = new AddUserRequest(request.isAccountEnabled(),
+        AddUserRequest reqObj = new AddUserRequest(request.isAccountEnabled(),request.getSurName(),
                 request.getDisplayName(),request.getMailNickname(),request.getUserPrincipalName(),
                 request.getMobilePhone(),request.getPasswordProfile());
         UserResponse response =  userManagementService.addUser(access_token,reqObj);
@@ -124,18 +126,21 @@ public class UserManagementController {
         String access_token = getBearerToken();
         log.info("{}:: After access_token in retrieveUserDetailsId",loggingComponentName);
         UserResponse response = userManagementService.getUserDetails(access_token,userId);
-        UserRolesResponse roleResponse =  userManagementService.getUserGroup(access_token,userId);
-        if (roleResponse == null) {
+        /*UserRolesResponse roleResponse =  userManagementService.getUserGroup(access_token,userId);
+        if (Objects.isNull(roleResponse) || CollectionUtils.isEmpty(roleResponse.getUserRoles())) {
             throw new SearchResultNotFoundException("user group not found");
         }
         response.setRoleName(roleResponse.getUserRoles().stream().filter(
                 userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
-                .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get());
+                .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get());*/
+        if (Objects.isNull(response)) {
+            throw new SearchResultNotFoundException("user group not found");
+        }
         return ResponseEntity.status(200).body(response);
     }
     public String getBearerToken() throws AccessTokenException {
 
-        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+       MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
         map.add("client_id", environment.getProperty("client-Id"));
         map.add("client_secret",environment.getProperty("client-secret"));
