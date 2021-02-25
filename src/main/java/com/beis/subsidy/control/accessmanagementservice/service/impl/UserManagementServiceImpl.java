@@ -1,5 +1,7 @@
 package com.beis.subsidy.control.accessmanagementservice.service.impl;
 
+import static com.beis.subsidy.control.accessmanagementservice.utils.JsonFeignResponseUtil.toResponseEntity;
+
 import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAPIFeignClient;
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessManagementException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
@@ -11,7 +13,6 @@ import com.beis.subsidy.control.accessmanagementservice.response.UserRolesRespon
 import com.beis.subsidy.control.accessmanagementservice.response.UserRoleResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
-import static com.beis.subsidy.control.accessmanagementservice.utils.JsonFeignResponseUtil.toResponseEntity;
 import feign.FeignException;
 import feign.Response;
 import lombok.extern.slf4j.Slf4j;
