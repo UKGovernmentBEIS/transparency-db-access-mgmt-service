@@ -12,9 +12,12 @@ import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserRoleResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserRolesResponse;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
+import com.beis.subsidy.control.accessmanagementservice.utils.EmailUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import uk.gov.service.notify.NotificationClientException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -76,6 +79,17 @@ public class UserManagementController {
         request.getGrpRoleIds().forEach(roleId -> {
              userManagementService.createGroupForUser(access_token, roleId, response.getId());
         });
+        
+      //notification starts here
+        
+        try {
+    		  log.info(":email sending to  {}",response.getMail());
+			EmailUtils.sendEmail(response.getMail(),request.getPasswordProfile().getPassword());
+		} catch (NotificationClientException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    //end here
 
         return ResponseEntity.status(201).body(response);
     }
