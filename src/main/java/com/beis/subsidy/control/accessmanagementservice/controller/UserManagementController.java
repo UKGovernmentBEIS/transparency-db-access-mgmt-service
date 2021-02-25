@@ -16,6 +16,7 @@ import com.beis.subsidy.control.accessmanagementservice.utils.EmailUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 import uk.gov.service.notify.NotificationClientException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,13 +85,11 @@ public class UserManagementController {
         
         try {
     		  log.info(":email sending to  {}",response.getMail());
-			EmailUtils.sendEmail(response.getMail(),request.getPasswordProfile().getPassword());
+    		  EmailUtils.sendEmail(response.getMail(),request.getPasswordProfile().getPassword());
 		} catch (NotificationClientException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+            log.error("{}::email sending to  {}",loggingComponentName, e);
 		}
 	    //end here
-
         return ResponseEntity.status(201).body(response);
     }
 
@@ -140,18 +139,17 @@ public class UserManagementController {
         String access_token = getBearerToken();
         log.info("{}:: After access_token in retrieveUserDetailsId",loggingComponentName);
         UserResponse response = userManagementService.getUserDetails(access_token,userId);
-        /*UserRolesResponse roleResponse =  userManagementService.getUserGroup(access_token,userId);
+        UserRolesResponse roleResponse =  userManagementService.getUserGroup(access_token,userId);
         if (Objects.isNull(roleResponse) || CollectionUtils.isEmpty(roleResponse.getUserRoles())) {
             throw new SearchResultNotFoundException("user group not found");
         }
         response.setRoleName(roleResponse.getUserRoles().stream().filter(
                 userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
-                .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get());*/
-        if (Objects.isNull(response)) {
-            throw new SearchResultNotFoundException("user group not found");
-        }
+                .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get());
+        log.info("{}:: After setRoleName in retrieveUserDetailsId",loggingComponentName);
         return ResponseEntity.status(200).body(response);
     }
+
     public String getBearerToken() throws AccessTokenException {
 
        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
