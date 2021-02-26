@@ -334,12 +334,15 @@ public class UserManagementServiceImpl implements UserManagementService {
     public int updateUser(String token, String userId, UpdateUserRequest request) {
 
         Response response = null;
-        int status = 0;
         try {
+            log.info("{}:: before updateUser User Graph Api call {} ::{}",request.getDisplayName(),
+                    request.getMobilePhone(),request.getSurname());
             response = graphAPIFeignClient.updateUser("Bearer " + token, userId,request);
-            log.info("{}:: after updateUser User Graph Api call {}", loggingComponentName);
-           if (response.status() == 400) {
-                throw new InvalidRequestException("updateUser request is invalid");
+            log.info("{}:: after updateUser User Graph Api call & status is {}", loggingComponentName,response.status());
+            if (response.status() == 400) {
+
+                    throw new InvalidRequestException("updateUser request is invalid");
+
             } else if (response.status() > 400) {
                 log.error("{}:: Graph Api  updateUser:: status code {}",
                         loggingComponentName, response.status());

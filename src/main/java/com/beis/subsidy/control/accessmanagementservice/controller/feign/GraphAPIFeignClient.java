@@ -61,9 +61,9 @@ public interface GraphAPIFeignClient {
                         @RequestBody InvitationRequest request);
 
     @PatchMapping(value = "/v1.0/users/{id}/")
-    @RequestLine("PATCH /v1.0/users/{id}/")
+    @RequestLine("PATCH v1.0/users/{id}/")
     @Headers({"Authorization: {authorization}","Content-Type: application/json"})
     Response updateUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
-                        @PathVariable("id")  String userId,@RequestBody UpdateUserRequest request);
+                        @PathVariable("id")  String id,@RequestBody UpdateUserRequest request);
 
 }
