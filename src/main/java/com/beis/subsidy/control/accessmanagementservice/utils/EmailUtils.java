@@ -37,10 +37,10 @@ public class EmailUtils {
 		log.info("response :: " + response.getBody());
 	}
 	
-public static void sendFeedBack(String feedBack,String comments) throws NotificationClientException {
-		
+public static void sendFeedBack(String feedBack,String comments,String apiKey,String template) throws NotificationClientException {
+	
 		log.info("rinside  sendFeedBack ***** email * :: " + feedBack);
-		NotificationClient client = new NotificationClient(environment.getProperty("apiKey"));
+		NotificationClient client = new NotificationClient(apiKey);
 		
 		String feedBackEmail ="krishna.vamsiparankusam@cognizant.com";
 		//String feedBackEmail="subsidycontrol@beis.gov.uk";
@@ -53,7 +53,7 @@ public static void sendFeedBack(String feedBack,String comments) throws Notifica
 		personalisation.put("comments", comments);
 		//environment.getProperty("feed_back_template");
 		log.info("before sending ***** email **8 :: " + comments);
-		SendEmailResponse response = client.sendEmail(environment.getProperty("feedback_template_id"), feedBackEmail, personalisation, null);
+		SendEmailResponse response = client.sendEmail(template, feedBackEmail, personalisation, null);
 
 		log.info("response :: " + response.getBody());
 	}
