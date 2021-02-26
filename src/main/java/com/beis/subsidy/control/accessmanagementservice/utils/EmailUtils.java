@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.service.notify.NotificationClient;
@@ -35,6 +36,26 @@ public class EmailUtils {
 
 		log.info("response :: " + response.getBody());
 	}
+	
+public static void sendFeedBack(String feedBack,String comments) throws NotificationClientException {
+		
+		log.info("rinside  sendFeedBack ***** email * :: " + feedBack);
+		NotificationClient client = new NotificationClient(environment.getProperty("apiKey"));
+		
+		String feedBackEmail ="krishna.vamsiparankusam@cognizant.com";
+		//String feedBackEmail="subsidycontrol@beis.gov.uk";
+		//comments="Satisfied";
+		if(StringUtils.isEmpty(comments)) {
+			comments="N/A";
+		}
+		Map<String, Object> personalisation = new HashMap<>();
+		personalisation.put("feedback_comment", feedBack);
+		personalisation.put("comments", comments);
+		//environment.getProperty("feed_back_template");
+		log.info("before sending ***** email **8 :: " + comments);
+		SendEmailResponse response = client.sendEmail(environment.getProperty("feedback_template_id"), feedBackEmail, personalisation, null);
 
+		log.info("response :: " + response.getBody());
+	}
 	
 }

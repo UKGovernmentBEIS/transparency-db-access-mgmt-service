@@ -217,4 +217,23 @@ public class UserManagementController {
         UserDetailsResponse response =  userManagementService.getAllUsers(access_token);
         return ResponseEntity.status(200).body(response);
     }
+    
+    @PostMapping(
+            value = "/feedback"
+            
+    )
+    public ResponseEntity<Object> sendFeedBack(@RequestBody FeedbackRequest request) {
+
+        log.info("{}::Before calling sendFeedBack");
+        
+        try {
+    		  log.info(":feedback email sending ....");
+			EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments());
+		} catch (NotificationClientException e) {
+			
+			log.error("error in sending feedback mail");
+		}
+	    
+        return ResponseEntity.status(201).body("Success");
+    }
 }
