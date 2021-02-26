@@ -8,6 +8,8 @@ import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequest
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
 import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.CreateUserInGroupRequest;
+import com.beis.subsidy.control.accessmanagementservice.request.InvitationRequest;
+import com.beis.subsidy.control.accessmanagementservice.request.UpdateUserRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserRolesResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserRoleResponse;
@@ -151,9 +153,8 @@ public class UserManagementServiceImpl implements UserManagementService {
         Response response = null;
         int status = 0;
         try {
-            long time1 = System.currentTimeMillis();
             response = graphAPIFeignClient.deleteUser("Bearer " + token, userId);
-            log.info("{}:: Time taken to call Graph Api is {}", loggingComponentName, (System.currentTimeMillis() - time1));
+            log.info("{}:: After deleteUser Graph Api call {}", loggingComponentName);
 
             if (response.status() == 204) {
                 status = response.status();
@@ -210,8 +211,6 @@ public class UserManagementServiceImpl implements UserManagementService {
         int status = 0;
         Object clazz;
         String graphReq= "https://graph.microsoft.com/v1.0/directoryObjects/{id}";
-        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-
         try {
             String req =  graphReq.replace("id", id);
             CreateUserInGroupRequest request = new  CreateUserInGroupRequest(req);
@@ -267,5 +266,91 @@ public class UserManagementServiceImpl implements UserManagementService {
             throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
         }
         return userRolesResponse;
+    }
+
+    @Override
+    public UserDetailsResponse getAllUsers(String token) {
+
+        // Graph API call.
+        UserDetailsResponse userDetailsResponse = null;
+        Response response = null;
+        Object clazz;
+        try {
+            long time1 = System.currentTimeMillis();
+            response = graphAPIFeignClient.getAllUserProfiles("Bearer " + token);
+            log.info("{}:: Time taken to call Graph Api is {}", loggingComponentName, (System.currentTimeMillis() - time1));
+
+            if (response.status() == 200) {
+                clazz = UserDetailsResponse.class;
+                ResponseEntity<Object> responseResponseEntity = toResponseEntity(response, clazz);
+                userDetailsResponse
+                        = (UserDetailsResponse) responseResponseEntity.getBody();
+
+            } else if (response.status() == 404) {
+                throw new SearchResultNotFoundException("get users not found");
+            }
+
+        } catch (FeignException ex) {
+            log.error("{}:: UserProfile api failed:: status code {} & message {}",
+                    loggingComponentName, ex.status(), ex.getMessage());
+            throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
+        }
+        return userDetailsResponse;
+    }
+
+    @Override
+    public UserResponse inviteUser(String token, InvitationRequest invitationRequest) {
+        Response response = null;
+        int status = 0;
+        UserResponse userResponse;
+        Object clazz;
+        try {
+            response = graphAPIFeignClient.inviteUser("Bearer " + token, invitationRequest);
+            log.info("{}:: after invite User Graph Api call {}", loggingComponentName);
+
+            if (response.status() == 201) {
+                clazz = UserResponse.class;
+                ResponseEntity<Object> responseResponseEntity =  toResponseEntity(response, clazz);
+                userResponse
+                        = (UserResponse) responseResponseEntity.getBody();
+                status = response.status();
+            } else if (response.status() == 400) {
+                throw new InvalidRequestException("invite user request is invalid");
+            } else {
+                log.error("{}:: Graph Api  inviteUser:: status code {}",
+                        loggingComponentName, response.status());
+                throw new AccessManagementException(HttpStatus.valueOf(response.status()), "Create User Graph Api Failed");
+            }
+
+        } catch (FeignException ex) {
+            log.error("{}:: Graph Api failed inviteUser:: status code {} & message {}",
+                    loggingComponentName, ex.status(), ex.getMessage());
+            throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
+        }
+        return userResponse;
+    }
+
+    @Override
+    public int updateUser(String token, String userId, UpdateUserRequest request) {
+
+        Response response = null;
+        int status = 0;
+        try {
+            response = graphAPIFeignClient.updateUser("Bearer " + token, userId,request);
+            log.info("{}:: after updateUser User Graph Api call {}", loggingComponentName);
+           if (response.status() == 400) {
+                throw new InvalidRequestException("updateUser request is invalid");
+            } else if (response.status() > 400) {
+                log.error("{}:: Graph Api  updateUser:: status code {}",
+                        loggingComponentName, response.status());
+                throw new AccessManagementException(HttpStatus.valueOf(response.status()), "updateUser User Graph Api Failed");
+            }
+
+        } catch (FeignException ex) {
+            log.error("{}:: Graph Api failed updateUser:: status code {} & message {}",
+                    loggingComponentName, ex.status(), ex.getMessage());
+            throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
+        }
+        return response.status();
     }
 }

@@ -2,6 +2,8 @@ package com.beis.subsidy.control.accessmanagementservice.controller.feign;
 
 import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.CreateUserInGroupRequest;
+import com.beis.subsidy.control.accessmanagementservice.request.InvitationRequest;
+import com.beis.subsidy.control.accessmanagementservice.request.UpdateUserRequest;
 import feign.Headers;
 import feign.RequestLine;
 import feign.Response;
@@ -52,5 +54,16 @@ public interface GraphAPIFeignClient {
     Response createGroupForUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
                                @PathVariable("groupId")  String groupId,
                                 @RequestBody CreateUserInGroupRequest request);
+
+    @PostMapping(value = "/v1.0/invitations")
+    @RequestLine("POST v1.0/invitations")
+    Response inviteUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
+                        @RequestBody InvitationRequest request);
+
+    @PatchMapping(value = "/v1.0/users/{id}")
+    @RequestLine("PATCH /v1.0/users/{id}")
+    @Headers({"Authorization: {authorization}","Content-Type: application/json"})
+    Response updateUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
+                        @PathVariable("id")  String userId,@RequestBody UpdateUserRequest request);
 
 }

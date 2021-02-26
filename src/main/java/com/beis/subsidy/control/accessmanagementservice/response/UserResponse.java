@@ -38,4 +38,7 @@ public class UserResponse {
 
     @JsonProperty
     private String roleName;
+
+    @JsonProperty
+    private InviteUserResponse invitedUser;
   }
