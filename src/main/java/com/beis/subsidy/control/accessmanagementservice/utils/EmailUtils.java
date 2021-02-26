@@ -41,7 +41,7 @@ public class EmailUtils {
 	
 	public static void sendFeedBack(String feedBack,String comments) throws NotificationClientException {
 		
-		log.info("rinside  sendFeedBack ***** email **8 :: " + feedBack);
+		log.info("rinside  sendFeedBack ***** email * :: " + feedBack);
 		NotificationClient client = new NotificationClient(environment.getProperty("apiKey"));
 		
 		String feedBackEmail ="krishna.vamsiparankusam@cognizant.com";
