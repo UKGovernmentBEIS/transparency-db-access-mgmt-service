@@ -68,7 +68,7 @@ public class ExceptionMapper extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(AccessManagementException.class)
-    public final ResponseEntity<Object> handleAccessManagementException(UnauthorisedAccessException ex, WebRequest request) {
+    public final ResponseEntity<Object> handleAccessManagementException(Exception ex, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
                 request.getDescription(false));
         return new ResponseEntity(exceptionResponse,INTERNAL_SERVER_ERROR);
