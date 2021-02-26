@@ -53,13 +53,13 @@ public class AccessManagementController {
 
     @Value("${loggingComponentName}")
     private String loggingComponentName;
-    
+
     @Autowired
     GraphAPILoginFeignClient graphAPILoginFeignClient;
 
     static final String BEARER = "Bearer ";
 
-  
+
     @Autowired
     Environment environment;
 
@@ -175,7 +175,8 @@ public class AccessManagementController {
              HttpHeaders userPrinciple, @RequestParam(value = "searchName",required = false) String searchName,
              @RequestParam(value = "status",required = false) String status,
              @RequestParam(value = "page", required = false) Integer page,
-             @RequestParam(value = "recordsPerPage", required = false) Integer recordsPerPage) {
+             @RequestParam(value = "recordsPerPage", required = false) Integer recordsPerPage,
+             @RequestParam(value = "sortBy", required = false)  String[] sortBy) {
 
         log.info("{}:: Before calling retrieveSubsidyAwardDetails::{}", loggingComponentName);
         UserPrinciple userPrincipleObj = SearchUtils.isRoleValid(objectMapper,userPrinciple);
@@ -188,10 +189,10 @@ public class AccessManagementController {
             page = 1;
         }
         SearchSubsidyResultsResponse searchResults = accessManagementService.findMatchingSubsidyMeasureWithAwardDetails(
-                searchName, status, page, recordsPerPage, userPrincipleObj);
+                searchName, status, page, recordsPerPage, userPrincipleObj, sortBy);
         return new ResponseEntity<SearchSubsidyResultsResponse>(searchResults, HttpStatus.OK);
     }
-    
+
     public String getBearerToken() throws AccessTokenException {
 
         MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
@@ -202,8 +203,8 @@ public class AccessManagementController {
 
         AccessTokenResponse openIdTokenResponse = graphAPILoginFeignClient
                 .getAccessIdToken(environment.getProperty("tenant-id"),map);
-        
-        
+
+
         if (openIdTokenResponse == null) {
             throw new AccessTokenException(HttpStatus.valueOf(500),
                     "Graph Api Service Failed while bearer token generate");

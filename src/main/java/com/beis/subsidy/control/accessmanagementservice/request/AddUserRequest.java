@@ -12,8 +12,13 @@ import javax.validation.constraints.NotNull;
 public class AddUserRequest {
 
     private boolean accountEnabled;
+
+    private String surname;
+
     private String displayName;
+
     private String mailNickname;
+
     private String userPrincipalName;
 
     private String mobilePhone;
@@ -24,6 +29,7 @@ public class AddUserRequest {
     @JsonCreator
     public AddUserRequest(
             @JsonProperty("accountEnabled") boolean accountEnabled,
+            @JsonProperty("surname") String surname,
             @JsonProperty("displayName") String displayName,
             @JsonProperty("mailNickname") String mailNickname,
             @JsonProperty("userPrincipalName") String userPrincipalName,
@@ -36,5 +42,6 @@ public class AddUserRequest {
         this.userPrincipalName = userPrincipalName;
         this.mobilePhone = mobilePhone;
         this.passwordProfile = passwordProfile;
+        this.surname = surname;
     }
 }

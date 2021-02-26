@@ -30,4 +30,10 @@ public class UserRoleResponse {
     @JsonProperty
     private String mail;
 
+    @JsonProperty
+    private String surname;
+
+    @JsonProperty
+    private String mobilePhone;
+
 }

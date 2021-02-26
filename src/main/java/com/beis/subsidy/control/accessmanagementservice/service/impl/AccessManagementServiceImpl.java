@@ -1,5 +1,7 @@
 package com.beis.subsidy.control.accessmanagementservice.service.impl;
 
+import static com.beis.subsidy.control.accessmanagementservice.utils.JsonFeignResponseUtil.toResponseEntity;
+
 import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAPIFeignClient;
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessManagementException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
@@ -32,34 +34,25 @@ import com.beis.subsidy.control.accessmanagementservice.utils.AwardSpecification
 import com.beis.subsidy.control.accessmanagementservice.utils.EmailUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.GACreatedBySpecification;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.service.notify.NotificationClientException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
-
-import java.io.IOException;
+import uk.gov.service.notify.NotificationClientException;
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-
-
 
 @Service
 @Slf4j
@@ -75,14 +68,14 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
     @Value("${loggingComponentName}")
     private String loggingComponentName;
-    
+
     @Autowired
     private ObjectMapper objectMapper;
-    
-   
+
+
     @Autowired
     GraphAPIFeignClient graphAPIFeignClient;
-    
+
     private static final ObjectMapper json = new ObjectMapper()
 			.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -217,50 +210,51 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             award.setReason(awardUpdateRequest.getReason().trim());
         }
         awardRepository.save(award);
-        
-//notification call START here
-        
+
+        //notification call START here
         UserDetailsResponse userDetailsResponse =getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
         List<UserResponse> users= userDetailsResponse.getUserProfiles();
-       
+
         for (UserResponse userResponse : users) {
-      	  
-      	  try {
+            try {
       		  log.info(":email sending to  {}",userResponse.getMail());
-  			EmailUtils.sendEmail(userResponse.getMail());
-  		} catch (NotificationClientException e) {
-  			// TODO Auto-generated catch block
-  			e.printStackTrace();
-  		}
-  	}
-  	
-  	      //end Notification
+  			  EmailUtils.sendEmail(userResponse.getMail());
+  		    } catch (NotificationClientException e) {
+
+  		    }
+        }
+        //end Notification
         return ResponseEntity.status(200).build();
     }
 
     @Override
     public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status,
-                                                 Integer page, Integer recordsPerPage, UserPrinciple userPrinciple) {
+                             Integer page, Integer recordsPerPage, UserPrinciple userPrinciple,String[] sortBy) {
+
         Page<Award> pageAwards = null;
         List<Award> awardResults = null;
         Specification<Award> awardSpecifications = getSpecificationAwardDetails(searchName, status);
 
-        Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage);
+        List<Sort.Order> orders = getOrderByCondition(sortBy);
+        Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage,Sort.by(orders));
 
         if (AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrinciple.getRole().trim())) {
             pageAwards = awardRepository.findAll(awardSpecifications, pagingSortAwards);
             awardResults = pageAwards.getContent();
 
         } else {
-
             Long gaId = getGrantingAuthorityIdByName(userPrinciple.getGrantingAuthorityGroupName());
             if(gaId == null || gaId <= 0){
                 throw new UnauthorisedAccessException("Invalid granting authority name");
             }
 
-            pageAwards = awardRepository.findAll(getAwardSpecification(gaId),pagingSortAwards);
-            awardResults = pageAwards.getContent();
-
+            if(!StringUtils.isEmpty(searchName) || !StringUtils.isEmpty(status)) {
+                pageAwards = awardRepository.findAll(awardSpecifications,pagingSortAwards);
+                awardResults = pageAwards.getContent();
+            } else {
+                pageAwards = awardRepository.findAll(getAwardSpecification(gaId),pagingSortAwards);
+                awardResults = pageAwards.getContent();
+            }
         }
         SearchSubsidyResultsResponse searchResults = null;
 
@@ -272,7 +266,6 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
             throw new SearchResultNotFoundException("AwardResults NotFound");
         }
-
         return searchResults;
     }
 
@@ -347,6 +340,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         awardUserActivityCount.put("totalPublishedAward",totalPublishedAward);
         return awardUserActivityCount;
     }
+
     private Map<String, Integer> grantingAuthorityCounts(UserPrinciple userPrincipleObj) {
         List<GrantingAuthority> allGrantingAuthority = grantingAuthorityRepository.findAll();
         int totalGrantingAuthority = allGrantingAuthority.size();
@@ -382,10 +376,12 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 SubsidyMeasureSpecificationUtils.subsidyMeasureByGrantingAuthority(gaId)
         );
     }
+
     private Specification<Award> getAwardSpecification(Long gaId) {
         return Specification.where(
                 AwardSpecificationUtils.awardByGrantingAuthority(gaId));
     }
+
     private Long getGrantingAuthorityIdByName(String gaName){
         GrantingAuthority gaObj = grantingAuthorityRepository.findByGrantingAuthorityName(gaName);
         if(gaObj != null){
@@ -413,31 +409,54 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                         ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
         return awardSpecifications;
     }
-    
+
+    private List<Sort.Order> getOrderByCondition(String[] sortBy) {
+
+        List<Sort.Order> orders = new ArrayList<Sort.Order>();
+
+        if (sortBy != null && sortBy.length > 0 && sortBy[0].contains("-")) {
+            // will sort more than 2 fields
+            // sortOrder="field, direction"
+            for (String sortOrder : sortBy) {
+                String[] _sort = sortOrder.split("-");
+                orders.add(new Sort.Order(getSortDirection(_sort[1]), _sort[0]));
+            }
+        } else {
+            //Default sort - Legal Granting Date with recent one at top
+            orders.add(new Sort.Order(getSortDirection("desc"), "legalGrantingDate"));
+        }
+        return orders;
+    }
+
+    private Sort.Direction getSortDirection(String direction) {
+        Sort.Direction sortDir = Sort.Direction.ASC;
+        if (direction.equals("desc")) {
+            sortDir = Sort.Direction.DESC;
+        }
+        return sortDir;
+    }
+
     /**
      * Get the group info
      * @param token
      * @param groupId
      * @return
      */
-    
+
     public UserDetailsResponse getUserRolesByGrpId(String token, String groupId) {
         // Graph API call.
         UserDetailsResponse userDetailsResponse = null;
         Response response = null;
         Object clazz;
         try {
-            long time1 = System.currentTimeMillis();
             log.info("{}::before calling toGraph Api is and groupId is {}",loggingComponentName,groupId);
             response = graphAPIFeignClient.getUsersByGroupId("Bearer " + token,groupId);
-            log.info("{}:: Time taken to call Graph Api is {}", loggingComponentName, (System.currentTimeMillis() - time1));
-
             if (response.status() == 200) {
                 clazz = UserDetailsResponse.class;
                 ResponseEntity<Object> responseResponseEntity =  toResponseEntity(response, clazz);
                 userDetailsResponse
                         = (UserDetailsResponse) responseResponseEntity.getBody();
-               
+
             } else if (response.status() == 404) {
                 throw new SearchResultNotFoundException("Group Id not found");
             } else {
@@ -453,34 +472,5 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         }
         return userDetailsResponse;
     }
-    
-    public static ResponseEntity<Object> toResponseEntity(Response response, Object clazz) {
-		Optional<Object> payload = decode(response, clazz);
 
-		return new ResponseEntity<>(payload.orElse(null), convertHeaders(response.headers()),
-				HttpStatus.valueOf(response.status()));
-	}
-
-	public static MultiValueMap<String, String> convertHeaders(Map<String, Collection<String>> responseHeaders) {
-		MultiValueMap<String, String> responseEntityHeaders = new LinkedMultiValueMap<>();
-		responseHeaders.entrySet().stream().forEach(e -> {
-			if (!(e.getKey().equalsIgnoreCase("request-context") ||
-					e.getKey().equalsIgnoreCase("x-powered-by")
-					|| e.getKey().equalsIgnoreCase("content-length"))) {
-				responseEntityHeaders.put(e.getKey(), new ArrayList<>(e.getValue()));
-			}
-		});
-
-		return responseEntityHeaders;
-	}
-
-	public static Optional<Object> decode(Response response, Object clazz) {
-		try {
-			return Optional
-					.of(json.readValue(response.body().asReader(Charset.defaultCharset()),
-							(Class<Object>) clazz));
-		} catch (IOException e) {
-			return Optional.empty();
-		}
-	}
 }

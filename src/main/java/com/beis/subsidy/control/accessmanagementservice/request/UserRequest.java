@@ -15,6 +15,7 @@ public class UserRequest {
 
     private boolean accountEnabled;
     private String displayName;
+    private String surName;
     private String mailNickname;
     private String userPrincipalName;
 
@@ -28,6 +29,7 @@ public class UserRequest {
     @JsonCreator
     public UserRequest(
             @JsonProperty("accountEnabled") boolean accountEnabled,
+            @JsonProperty("surName") String surName,
             @JsonProperty("displayName") String displayName,
             @JsonProperty("mailNickname") String mailNickname,
             @JsonProperty("userPrincipalName") String userPrincipalName,
@@ -36,6 +38,7 @@ public class UserRequest {
             @JsonProperty("grpRoleIds") Set<String> grpRoleIds) {
 
         this.accountEnabled = accountEnabled;
+        this.surName = surName;
         this.displayName = displayName;
         this.mailNickname = mailNickname;
         this.userPrincipalName = userPrincipalName;
