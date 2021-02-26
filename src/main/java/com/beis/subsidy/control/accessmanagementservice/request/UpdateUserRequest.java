@@ -13,8 +13,6 @@ import java.util.Set;
 @NoArgsConstructor
 public class UpdateUserRequest {
 
-    private String givenName;
-
     private String surname;
 
     private String mobilePhone;
