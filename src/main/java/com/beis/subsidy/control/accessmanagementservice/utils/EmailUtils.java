@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
@@ -17,7 +18,7 @@ public class EmailUtils {
 
 	@Autowired
 	static Environment environment;
-
+	
 	public static void sendEmail(String emailId) throws NotificationClientException {
 		NotificationClient client = new NotificationClient(environment.getProperty("apiKey"));
 		SendEmailResponse response = client.sendEmail(environment.getProperty("templateId"), emailId, null, null);
@@ -52,7 +53,7 @@ public class EmailUtils {
 		personalisation.put("feedback_comment", feedBack);
 		personalisation.put("comments", comments);
 		//environment.getProperty("feed_back_template");
-		SendEmailResponse response = client.sendEmail(environment.getProperty("feed_back_template"), feedBackEmail, personalisation, null);
+		SendEmailResponse response = client.sendEmail(environment.getProperty("feedback_template_id"), feedBackEmail, personalisation, null);
 
 		log.info("response :: " + response.getBody());
 	}
