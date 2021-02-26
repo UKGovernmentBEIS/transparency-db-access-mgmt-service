@@ -5,6 +5,7 @@ import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenExc
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
 import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
+import com.beis.subsidy.control.accessmanagementservice.request.FeedbackRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.UserRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
@@ -164,4 +165,25 @@ public class UserManagementController {
         }
         return openIdTokenResponse.getAccessToken();
     }
+    
+    @PostMapping(
+            value = "/feedback"
+            
+    )
+    public ResponseEntity<Object> sendFeedBack(@RequestBody FeedbackRequest request) {
+
+        log.info("{}::Before calling sendFeedBack");
+        
+        try {
+    		  log.info(":feedback email sending ....");
+			EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments());
+		} catch (NotificationClientException e) {
+			
+			log.error("error in sending feedback mail");
+		}
+	    
+        return ResponseEntity.status(201).body("Success");
+    }
+
+    
 }
