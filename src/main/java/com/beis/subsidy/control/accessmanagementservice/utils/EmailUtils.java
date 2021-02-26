@@ -3,11 +3,9 @@ package com.beis.subsidy.control.accessmanagementservice.utils;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-
-
+import org.springframework.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.service.notify.NotificationClient;
