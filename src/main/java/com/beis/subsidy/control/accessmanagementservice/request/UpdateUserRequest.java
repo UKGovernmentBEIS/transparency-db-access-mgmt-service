@@ -17,18 +17,16 @@ public class UpdateUserRequest {
 
     private String mobilePhone;
 
-    private String displayName;
-
-    //private String userPrincipalName;
+    private String firstName;
 
     @JsonCreator
     public UpdateUserRequest(
             @JsonProperty("surname") String surname,
             @JsonProperty("mobilePhone") String mobilePhone,
-            @JsonProperty("displayName") String displayName) {
+            @JsonProperty("givenName") String firstName) {
 
         this.surname = surname;
         this.mobilePhone= mobilePhone;
-        this.displayName = displayName;
+        this.firstName = firstName;
     }
 }

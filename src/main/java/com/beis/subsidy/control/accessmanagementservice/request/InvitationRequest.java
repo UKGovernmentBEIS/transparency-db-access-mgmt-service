@@ -12,8 +12,6 @@ import java.util.Set;
 public class InvitationRequest {
 
 
-    private String invitedUserDisplayName;
-
     private String invitedUserEmailAddress;
 
     private String inviteRedirectUrl;
@@ -22,13 +20,11 @@ public class InvitationRequest {
 
     @JsonCreator
     public InvitationRequest(
-            @JsonProperty("invitedUserDisplayName") String invitedUserDisplayName,
             @JsonProperty("invitedUserEmailAddress") String invitedUserEmailAddress,
             @JsonProperty("inviteRedirectUrl") String inviteRedirectUrl,
             @JsonProperty("sendInvitationMessage") boolean sendInvitationMessage) {
 
         this.inviteRedirectUrl = inviteRedirectUrl;
-        this.invitedUserDisplayName = invitedUserDisplayName;
         this.invitedUserEmailAddress = invitedUserEmailAddress;
         this.sendInvitationMessage =  sendInvitationMessage;
     }

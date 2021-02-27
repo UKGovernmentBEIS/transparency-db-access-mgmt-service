@@ -73,17 +73,8 @@ public class UserManagementController {
         request.getGrpRoleIds().forEach(roleId -> {
              userManagementService.createGroupForUser(access_token, roleId, response.getId());
         });
-        
-      //notification starts here
-        
-        try {
-    		  log.info(":email sending to  {}",response.getMail());
-    		  EmailUtils.sendEmail(response.getMail(),request.getPasswordProfile().getPassword());
-		} catch (NotificationClientException e) {
-            log.error("{}::email sending to  {}",loggingComponentName, e);
-		}
-	    //end here
-        return ResponseEntity.status(201).body(response);
+
+     return ResponseEntity.status(201).body(response);
     }
 
     @PostMapping(
@@ -96,18 +87,12 @@ public class UserManagementController {
         log.info("{}::Before calling sendUserInvitation", loggingComponentName);
         SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
-        InvitationRequest invitationRequest = new InvitationRequest(request.getInvitedUserDisplayName(),
-                request.getInvitedUserEmailAddress(), request.getInviteRedirectUrl(),request.isSendInvitationMessage());
+        InvitationRequest invitationRequest = new InvitationRequest(request.getInvitedUserEmailAddress(), request.getInviteRedirectUrl(),request.isSendInvitationMessage());
         //get the user id in the response once user created successfully in the Azure Active directory
         UserResponse response =  userManagementService.inviteUser(access_token,invitationRequest);
         if (Objects.isNull(response) || Objects.isNull( response.getInvitedUser())) {
-            throw new AccessManagementException(HttpStatus.INTERNAL_SERVER_ERROR,"user not created");
+            throw new AccessManagementException(HttpStatus.valueOf(500),"user not created");
         }
-
-        // updating the user details since with create api not able to add the surname and mobile number so we are updating
-        UpdateUserRequest updateUserRequest = new UpdateUserRequest(request.getSurname(),request.getMobilePhone(),request.getInvitedUserDisplayName());
-
-        userManagementService.updateUser(access_token,response.getInvitedUser().getId(),updateUserRequest);
 
         //assigning the role and group to the user once it's created.
         request.getGrpRoleIds().forEach(roleId -> {

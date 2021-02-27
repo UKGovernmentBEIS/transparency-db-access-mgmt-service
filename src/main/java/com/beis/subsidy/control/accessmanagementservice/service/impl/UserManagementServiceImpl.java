@@ -335,8 +335,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
         Response response = null;
         try {
-            log.info("{}:: before updateUser User Graph Api call {} ::{}",request.getDisplayName(),
-                    request.getMobilePhone(),request.getSurname());
+            log.info("{}:: before updateUser User Graph Api call {} ::{}", loggingComponentName);
             response = graphAPIFeignClient.updateUser("Bearer " + token, userId,request);
             log.info("{}:: after updateUser User Graph Api call & status is {}", loggingComponentName,response.status());
             if (response.status() == 400) {
