@@ -41,9 +41,7 @@ public static void sendFeedBack(String feedBack,String comments,String apiKey,St
 	
 		log.info("rinside  sendFeedBack ***** email * :: " + feedBack);
 		NotificationClient client = new NotificationClient(apiKey);
-		
-		String feedBackEmail ="krishna.vamsiparankusam@cognizant.com";
-		//String feedBackEmail="subsidycontrol@beis.gov.uk";
+		String feedBackEmail="subsidycontrol@beis.gov.uk";
 		//comments="Satisfied";
 		if(StringUtils.isEmpty(comments)) {
 			comments="N/A";
