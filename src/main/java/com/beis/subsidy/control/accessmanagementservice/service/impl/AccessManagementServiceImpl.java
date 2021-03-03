@@ -228,12 +228,12 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     }
 
     @Override
-    public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status,
+    public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, Long awardNumber,String status,
                              Integer page, Integer recordsPerPage, UserPrinciple userPrinciple,String[] sortBy) {
 
         Page<Award> pageAwards = null;
         List<Award> awardResults = null;
-        Specification<Award> awardSpecifications = getSpecificationAwardDetails(searchName, status);
+        Specification<Award> awardSpecifications = getSpecificationAwardDetails(searchName, status,awardNumber);
 
         List<Sort.Order> orders = getOrderByCondition(sortBy);
         Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage,Sort.by(orders));
@@ -390,7 +390,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         return null;
     }
 
-    public Specification<Award>  getSpecificationAwardDetails(String searchName, String status) {
+    public Specification<Award>  getSpecificationAwardDetails(String searchName, String status, Long awardNumber) {
 
         Specification<Award> awardSpecifications = Specification
 
@@ -399,14 +399,13 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                         SearchUtils.checkNullOrEmptyString(searchName)
                                 ? null :AwardSpecificationUtils.subsidyMeasureTitle(searchName.trim())
                                 .or(SearchUtils.checkNullOrEmptyString(searchName)
-                                        ? null :AwardSpecificationUtils.subsidyNumber(searchName.trim()))
-                                .or(SearchUtils.checkNullOrEmptyString(searchName)
                                         ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
                                 .or(SearchUtils.checkNullOrEmptyString(searchName)
                                         ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim())))
                 // status from input parameter
                 .and(SearchUtils.checkNullOrEmptyString(status)
-                        ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
+                        ? null : AwardSpecificationUtils.awardByStatus(status.trim()))
+                 .and (awardNumber != null ? AwardSpecificationUtils.awardByNumber(awardNumber):null);
         return awardSpecifications;
     }
 

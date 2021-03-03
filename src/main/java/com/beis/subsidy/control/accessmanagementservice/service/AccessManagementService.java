@@ -25,6 +25,6 @@ public interface AccessManagementService {
 
     List<GrantingAuthorityResponse> getRoleBasedGAs(UserPrinciple userPrincipleObj);
 
-    SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status, Integer page,
+    SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, Long awardNumber,String status, Integer page,
                         Integer recordsPerPage, UserPrinciple userPrinciple,String[] sortBy);
 }
