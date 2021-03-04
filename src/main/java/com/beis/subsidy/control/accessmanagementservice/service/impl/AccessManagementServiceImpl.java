@@ -205,7 +205,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             award.setGrantingAuthority(grantingAuthority);
         }
         if (!StringUtils.isEmpty(awardUpdateRequest.getStatus()) &&
-                "Rejected".equals(awardUpdateRequest.getStatus().trim()) &&
+                ("Rejected".equals(awardUpdateRequest.getStatus().trim()) ||
+                 "Deleted".equals(awardUpdateRequest.getStatus().trim())) &&
                 !StringUtils.isEmpty(awardUpdateRequest.getReason())) {
             award.setReason(awardUpdateRequest.getReason().trim());
         }
