@@ -1,7 +1,6 @@
 package com.beis.subsidy.control.accessmanagementservice.utils;
 
 import com.beis.subsidy.control.accessmanagementservice.model.Award;
-import com.beis.subsidy.control.accessmanagementservice.model.GrantingAuthority;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.text.MessageFormat;
@@ -59,7 +58,11 @@ public final class AwardSpecificationUtils {
 
 	public static Specification<Award> beneficiaryName(String beneficiaryName) {
 
-		return (root, query, builder) -> builder.like(root.get("beneficiary").get("beneficiaryName"),
+		return (root, query, builder) -> builder.like(builder.lower(root.get("beneficiary").get("beneficiaryName")),
 				contains(beneficiaryName));
 	}
+
+    public static Specification<Award> awardByNumber(Long awardNumber) {
+		return (root, query, builder) -> builder.equal(root.get("awardNumber"),awardNumber);
+    }
 }

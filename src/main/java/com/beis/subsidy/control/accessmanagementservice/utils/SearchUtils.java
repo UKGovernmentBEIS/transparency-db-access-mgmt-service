@@ -34,6 +34,14 @@ public class SearchUtils {
 		return inputString == null || inputString.trim().isEmpty();
 	}
 
+	public static boolean checkLongValue(Long inputValue) {
+		boolean isValid = true;
+		if ( inputValue == 0) {
+			isValid = false;
+		}
+		return isValid;
+	}
+
 	/**
 	 * To convert string date in format YYYY-MM-DD to LocalDate (without timezone)	
 	 * @param inputStringDate - input string date

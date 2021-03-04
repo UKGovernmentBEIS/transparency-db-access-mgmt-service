@@ -174,6 +174,7 @@ public class AccessManagementController {
     public ResponseEntity<SearchSubsidyResultsResponse> retrieveSubsidyAwardDetails(@RequestHeader("userPrinciple")
              HttpHeaders userPrinciple, @RequestParam(value = "searchName",required = false) String searchName,
              @RequestParam(value = "status",required = false) String status,
+             @RequestParam(value = "awardNumber",required = false) Long awardNumber,
              @RequestParam(value = "page", required = false) Integer page,
              @RequestParam(value = "recordsPerPage", required = false) Integer recordsPerPage,
              @RequestParam(value = "sortBy", required = false)  String[] sortBy) {
@@ -189,7 +190,7 @@ public class AccessManagementController {
             page = 1;
         }
         SearchSubsidyResultsResponse searchResults = accessManagementService.findMatchingSubsidyMeasureWithAwardDetails(
-                searchName, status, page, recordsPerPage, userPrincipleObj, sortBy);
+                searchName,awardNumber, status, page, recordsPerPage, userPrincipleObj, sortBy);
         return new ResponseEntity<SearchSubsidyResultsResponse>(searchResults, HttpStatus.OK);
     }
 
