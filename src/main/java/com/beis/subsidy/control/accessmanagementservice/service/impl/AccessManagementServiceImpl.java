@@ -213,7 +213,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         awardRepository.save(award);
 
         //notification call START here
-        UserDetailsResponse userDetailsResponse =getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
+       /* UserDetailsResponse userDetailsResponse =getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
         List<UserResponse> users= userDetailsResponse.getUserProfiles();
 
         for (UserResponse userResponse : users) {
@@ -223,7 +223,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
   		    } catch (NotificationClientException e) {
 
   		    }
-        }
+        }*/
         //end Notification
         return ResponseEntity.status(200).build();
     }
