@@ -519,7 +519,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     
     public Specification<AuditLogs>  getSpecificationAuditDetails(String searchName) {
 
-        /*Specification<AuditLogs> auditSpecifications = Specification
+        Specification<AuditLogs> auditSpecifications = Specification
 
                 // subsidyMeasureTitle from input parameter
                 .where(
@@ -529,8 +529,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                                 );
                 // status from input parameter
               
-        return auditSpecifications;*/
-    	return null;
+        return auditSpecifications;
+    	
     }
     
     private List<Sort.Order> getOrderByConditionAudits(String[] sortBy) {
