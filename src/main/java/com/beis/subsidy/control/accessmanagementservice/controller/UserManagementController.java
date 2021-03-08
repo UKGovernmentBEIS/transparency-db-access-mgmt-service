@@ -5,6 +5,8 @@ import com.beis.subsidy.control.accessmanagementservice.exception.AccessManageme
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
+import com.beis.subsidy.control.accessmanagementservice.model.AuditLogs;
+import com.beis.subsidy.control.accessmanagementservice.repository.AuditLogsRepository;
 import com.beis.subsidy.control.accessmanagementservice.request.*;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
@@ -30,6 +32,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -47,6 +50,9 @@ public class UserManagementController {
 
     @Autowired
     GraphAPILoginFeignClient graphAPILoginFeignClient;
+    
+    @Autowired
+    AuditLogsRepository auditLogsRepository;
 
     static final String BEARER = "Bearer ";
 
@@ -73,7 +79,18 @@ public class UserManagementController {
         request.getGrpRoleIds().forEach(roleId -> {
              userManagementService.createGroupForUser(access_token, roleId, response.getId());
         });
-
+        
+        AuditLogs audit = new AuditLogs();
+       String userName= SearchUtils.getUserName(objectMapper, userPrinciple);
+       String gaName= SearchUtils.getGaName(objectMapper, userPrinciple);
+        audit.setUserName(userName);
+        audit.setEventType("create User");
+        audit.setEventId(response.getId());
+        audit.setGaName(gaName);
+        audit.setCreatedTimestamp(LocalDateTime.now());
+        audit.setEventMessage("User created by  "+userName);
+        auditLogsRepository.save(audit);
+        log.info("audit entry created for user "+userName);
      return ResponseEntity.status(201).body(response);
     }
 
@@ -112,6 +129,17 @@ public class UserManagementController {
         SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         int response =  userManagementService.updateUser(access_token,userId,request);
+        AuditLogs audit = new AuditLogs();
+        String userName= SearchUtils.getUserName(objectMapper, userPrinciple);
+        String gaName= SearchUtils.getGaName(objectMapper, userPrinciple);
+         audit.setUserName(userName);
+         audit.setEventType("update User");
+         audit.setEventId(userId);
+         audit.setGaName(gaName);
+         audit.setEventMessage("User updated by  "+userName);
+         audit.setCreatedTimestamp(LocalDateTime.now());
+         auditLogsRepository.save(audit);
+         log.info("audit entry created for updateUser "+userName);
         return ResponseEntity.status(response).build();
     }
 
@@ -131,6 +159,17 @@ public class UserManagementController {
         }
         String access_token = getBearerToken();
         int response =  userManagementService.deleteUser(access_token,userId);
+        AuditLogs audit = new AuditLogs();
+        String userName= SearchUtils.getUserName(objectMapper, userPrinciple);
+        String gaName= SearchUtils.getGaName(objectMapper, userPrinciple);
+         audit.setUserName(userName);
+         audit.setEventType("delete User");
+         audit.setEventId(userId);
+         audit.setGaName(gaName);
+         audit.setEventMessage("User deactivated by  "+userName);
+         audit.setCreatedTimestamp(LocalDateTime.now());
+         auditLogsRepository.save(audit);
+         log.info("audit entry created for deleteUser "+userName);
         return ResponseEntity.status(204).body(response);
     }
 

@@ -1,6 +1,7 @@
 package com.beis.subsidy.control.accessmanagementservice.service;
 
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetailsRequest;
+import com.beis.subsidy.control.accessmanagementservice.response.AuditLogsResultsResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.GrantingAuthorityResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchResults;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchSubsidyResultsResponse;
@@ -27,4 +28,6 @@ public interface AccessManagementService {
 
     SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status, Integer page,
                         Integer recordsPerPage, UserPrinciple userPrinciple,String[] sortBy);
+    
+    AuditLogsResultsResponse findMatchingAuditLogDetails(String userName,String searchName, Integer page, Integer recordsPerPage, String[] sortBy);
 }

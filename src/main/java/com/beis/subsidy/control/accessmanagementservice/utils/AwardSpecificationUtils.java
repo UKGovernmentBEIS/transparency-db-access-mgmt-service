@@ -1,5 +1,6 @@
 package com.beis.subsidy.control.accessmanagementservice.utils;
 
+import com.beis.subsidy.control.accessmanagementservice.model.AuditLogs;
 import com.beis.subsidy.control.accessmanagementservice.model.Award;
 import com.beis.subsidy.control.accessmanagementservice.model.GrantingAuthority;
 import org.springframework.data.jpa.domain.Specification;
@@ -61,5 +62,16 @@ public final class AwardSpecificationUtils {
 
 		return (root, query, builder) -> builder.like(root.get("beneficiary").get("beneficiaryName"),
 				contains(beneficiaryName));
+	}
+	
+	/**
+	 * To define specification for subsidy measure title
+	 *
+	 * @param subsidyMeasureTitle - Add subsidy measure title
+	 * @return Specification<Award> - Specification for Award
+	 */
+	public static Specification<AuditLogs> auditUser(String userName) {
+		
+		return (root, query, builder) -> builder.equal(root.get("userName"), userName);
 	}
 }
