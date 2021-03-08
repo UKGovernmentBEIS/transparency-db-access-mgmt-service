@@ -74,4 +74,8 @@ public final class AwardSpecificationUtils {
 		
 		return (root, query, builder) -> builder.equal(root.get("userName"), userName);
 	}
+	
+	public static Specification<Award> awardByNumber(Long awardNumber) {
+		return (root, query, builder) -> builder.equal(root.get("awardNumber"),awardNumber);
+    }
 }
