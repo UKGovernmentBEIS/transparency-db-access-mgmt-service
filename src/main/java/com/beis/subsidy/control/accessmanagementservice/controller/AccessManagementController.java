@@ -77,6 +77,7 @@ public class AccessManagementController {
                 AccessManagementConstant.BEIS_ADMIN_ROLE);
         try {
              SearchResults searchResults = accessManagementService.findBEISAdminDashboardData(userPrincipleObj);
+            log.info("{}:: After searchResults in findBEISAdminDashboardData search results::{}",loggingComponentName,searchResults);
             return new ResponseEntity<SearchResults>(searchResults, HttpStatus.OK);
         }
         catch(Exception e) {
