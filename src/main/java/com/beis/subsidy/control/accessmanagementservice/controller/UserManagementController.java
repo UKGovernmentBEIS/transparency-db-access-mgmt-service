@@ -202,7 +202,8 @@ public class UserManagementController {
         UserResponse response = userManagementService.getUserDetails(access_token,userId);
         UserRolesResponse roleResponse =  userManagementService.getUserGroup(access_token,userId);
         if (Objects.isNull(roleResponse) || CollectionUtils.isEmpty(roleResponse.getUserRoles())) {
-            throw new SearchResultNotFoundException("user group not found");
+            log.error("{}:: After roleResponse in retrieveUserDetailsId is null",loggingComponentName);
+            throw new SearchResultNotFoundException("User group not found");
         }
         response.setRoleName(roleResponse.getUserRoles().stream().filter(
                 userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))

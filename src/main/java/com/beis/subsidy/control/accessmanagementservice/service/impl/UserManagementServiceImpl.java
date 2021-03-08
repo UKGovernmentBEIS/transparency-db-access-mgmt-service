@@ -249,9 +249,9 @@ public class UserManagementServiceImpl implements UserManagementService {
         Object clazz;
         String groupName = null;
         try {
-            log.info("Before calling to Graph Api getUserGroupName");
+            log.info("{}::Before calling to Graph Api getUserGroupName and user id is {}",loggingComponentName, userId);
             response = graphAPIFeignClient.getUserGroupName("Bearer " + token,userId);
-            log.info("{}:: After the call Graph Api is {}", loggingComponentName);
+            log.info("{}:: After the call Graph Api getUserGroupName and  status is {}", loggingComponentName,response.status());
 
             if (response.status() == 200) {
                 clazz = UserRolesResponse.class;
