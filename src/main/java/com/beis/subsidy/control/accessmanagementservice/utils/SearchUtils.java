@@ -34,14 +34,6 @@ public class SearchUtils {
 		return inputString == null || inputString.trim().isEmpty();
 	}
 
-	public static boolean checkLongValue(Long inputValue) {
-		boolean isValid = true;
-		if ( inputValue == 0) {
-			isValid = false;
-		}
-		return isValid;
-	}
-
 	/**
 	 * To convert string date in format YYYY-MM-DD to LocalDate (without timezone)	
 	 * @param inputStringDate - input string date
@@ -198,6 +190,32 @@ public class SearchUtils {
 			throw new AccessManagementException(HttpStatus.BAD_REQUEST,"JSON parsing Exception");
 		}
 		return userPrincipleObj;
+	}
+	
+	public static String getUserName(ObjectMapper objMapper,HttpHeaders userPrinciple) {
+		UserPrinciple userPrincipleObj = null;
+		String userPrincipleStr = userPrinciple.get("userPrinciple").get(0);
+		try {
+			userPrincipleObj = objMapper.readValue(userPrincipleStr, UserPrinciple.class);
+			return userPrincipleObj.getUserName();
+			
+		} catch(JsonProcessingException exception){
+			throw new AccessManagementException(HttpStatus.BAD_REQUEST,"JSON parsing Exception");
+		}
+		
+	}
+	
+	public static String getGaName(ObjectMapper objMapper,HttpHeaders userPrinciple) {
+		UserPrinciple userPrincipleObj = null;
+		String userPrincipleStr = userPrinciple.get("userPrinciple").get(0);
+		try {
+			userPrincipleObj = objMapper.readValue(userPrincipleStr, UserPrinciple.class);
+			return userPrincipleObj.getGrantingAuthorityGroupName();
+			
+		} catch(JsonProcessingException exception){
+			throw new AccessManagementException(HttpStatus.BAD_REQUEST,"JSON parsing Exception");
+		}
+		
 	}
 
 }
