@@ -538,7 +538,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         List<Sort.Order> orders = new ArrayList<Sort.Order>();
 
         if (sortBy != null && sortBy.length > 0 && sortBy[0].contains("-")) {
-            // will sort more than 2 fields
+            //  will sort more than 2 fields
             // sortOrder="field, direction"
             for (String sortOrder : sortBy) {
                 String[] _sort = sortOrder.split("-");
