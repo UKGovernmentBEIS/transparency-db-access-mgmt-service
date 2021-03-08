@@ -64,16 +64,7 @@ public final class AwardSpecificationUtils {
 				contains(beneficiaryName));
 	}
 	
-	/**
-	 * To define specification for subsidy measure title
-	 *
-	 * @param subsidyMeasureTitle - Add subsidy measure title
-	 * @return Specification<Award> - Specification for Award
-	 */
-	public static Specification<AuditLogs> auditUser(String userName) {
-		
-		return (root, query, builder) -> builder.equal(root.get("userName"), userName);
-	}
+	
 	
 	public static Specification<Award> awardByNumber(Long awardNumber) {
 		return (root, query, builder) -> builder.equal(root.get("awardNumber"),awardNumber);
