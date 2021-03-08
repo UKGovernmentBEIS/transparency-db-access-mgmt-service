@@ -72,15 +72,17 @@ public class AccessManagementController {
     @GetMapping("/beisadmin")
     public ResponseEntity<SearchResults> findBEISAdminDashboardData(@RequestHeader("userPrinciple") HttpHeaders userPrinciple) {
         UserPrinciple userPrincipleObj = null;
+        log.info("{}:: Inside findBEISAdminDashboardData search results",loggingComponentName);
         //role validation
         userPrincipleObj = SearchUtils.validateRoleFromUserPrincipleObject(objectMapper,userPrinciple,
                 AccessManagementConstant.BEIS_ADMIN_ROLE);
         try {
              SearchResults searchResults = accessManagementService.findBEISAdminDashboardData(userPrincipleObj);
-            log.info("{}:: After searchResults in findBEISAdminDashboardData search results::{}",loggingComponentName,searchResults);
+            log.info("{}:: After searchResults in findBEISAdminDashboardData search results",loggingComponentName);
             return new ResponseEntity<SearchResults>(searchResults, HttpStatus.OK);
         }
         catch(Exception e) {
+            log.error("{}:: inside catch block of findBEISAdminDashboardData search results",loggingComponentName, e);
             throw new SearchResultNotFoundException("Search Result not found");
         }
     }

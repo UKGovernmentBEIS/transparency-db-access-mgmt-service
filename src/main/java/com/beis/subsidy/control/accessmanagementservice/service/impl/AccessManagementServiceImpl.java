@@ -88,17 +88,23 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     @Override
     public SearchResults findBEISAdminDashboardData(UserPrinciple userPrincipleObj) {
 
+        log.info("{}:: Inside findBEISAdminDashboardData {}",userPrincipleObj);
         Map<String, Integer> gaUserActivityCount = grantingAuthorityCounts(userPrincipleObj);
+        log.info("{}:: After gaUserActivityCount size",gaUserActivityCount.size());
         List<Award> awardList = awardRepository.findAll();
-        Map<String, Integer> awardUserActivityCount = adminAwardCounts(userPrincipleObj, awardList);
 
+        Map<String, Integer> awardUserActivityCount = adminAwardCounts(userPrincipleObj, awardList);
+        log.info("{}:: After awardUserActivityCount size",awardUserActivityCount.size());
         List<SubsidyMeasure> subsidyMeasuresList = subsidyMeasureRepository.findAll();
         Map<String, Integer> smUserActivityCount = subsidyMeasureCounts(userPrincipleObj, subsidyMeasuresList);
-
+        log.info("{}:: After smUserActivityCount size",smUserActivityCount.size());
         SearchResults searchResults = null;
         searchResults = new SearchResults(gaUserActivityCount);
+        log.info("{}:: After SearchResults constructor");
         addAwardToSearchResult(awardUserActivityCount,searchResults);
+        log.info("{}:: After addAwardToSearchResult");
         addSubsidiesToSearchResults(searchResults, smUserActivityCount);
+        log.info("{}:: After addSubsidiesToSearchResults");
         return searchResults;
     }
 
