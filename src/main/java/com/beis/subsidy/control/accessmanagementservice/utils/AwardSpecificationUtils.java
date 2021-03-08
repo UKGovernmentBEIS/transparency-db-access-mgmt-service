@@ -2,6 +2,7 @@ package com.beis.subsidy.control.accessmanagementservice.utils;
 
 import com.beis.subsidy.control.accessmanagementservice.model.Award;
 import org.springframework.data.jpa.domain.Specification;
+import com.beis.subsidy.control.accessmanagementservice.model.AuditLogs;
 
 import java.text.MessageFormat;
 
@@ -65,4 +66,14 @@ public final class AwardSpecificationUtils {
     public static Specification<Award> awardByNumber(Long awardNumber) {
 		return (root, query, builder) -> builder.equal(root.get("awardNumber"),awardNumber);
     }
+/**
+	 * To define specification for subsidy measure title
+	 *
+	 * @param subsidyMeasureTitle - Add subsidy measure title
+	 * @return Specification<Award> - Specification for Award
+	 */
+	public static Specification<AuditLogs> auditUser(String userName) {
+		
+		return (root, query, builder) -> builder.equal(root.get("userName"), userName);
+	}	
 }
