@@ -6,14 +6,17 @@ import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAP
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessManagementException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
 import com.beis.subsidy.control.accessmanagementservice.exception.UnauthorisedAccessException;
+import com.beis.subsidy.control.accessmanagementservice.model.AuditLogs;
 import com.beis.subsidy.control.accessmanagementservice.model.Award;
 import com.beis.subsidy.control.accessmanagementservice.model.Beneficiary;
 import com.beis.subsidy.control.accessmanagementservice.model.GrantingAuthority;
 import com.beis.subsidy.control.accessmanagementservice.model.SubsidyMeasure;
+import com.beis.subsidy.control.accessmanagementservice.repository.AuditLogsRepository;
 import com.beis.subsidy.control.accessmanagementservice.repository.AwardRepository;
 import com.beis.subsidy.control.accessmanagementservice.repository.GrantingAuthorityRepository;
 import com.beis.subsidy.control.accessmanagementservice.repository.SubsidyMeasureRepository;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetailsRequest;
+import com.beis.subsidy.control.accessmanagementservice.response.AuditLogsResultsResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.GrantingAuthorityResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchSubsidyResultsResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
@@ -68,6 +71,9 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
     @Value("${loggingComponentName}")
     private String loggingComponentName;
+    
+    @Autowired
+    private AuditLogsRepository auditLogsRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -228,12 +234,12 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     }
 
     @Override
-    public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, Long awardNumber,String status,
+    public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status,
                              Integer page, Integer recordsPerPage, UserPrinciple userPrinciple,String[] sortBy) {
 
         Page<Award> pageAwards = null;
         List<Award> awardResults = null;
-        Specification<Award> awardSpecifications = getSpecificationAwardDetails(searchName, status,awardNumber);
+        Specification<Award> awardSpecifications = getSpecificationAwardDetails(searchName, status);
 
         List<Sort.Order> orders = getOrderByCondition(sortBy);
         Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage,Sort.by(orders));
@@ -390,7 +396,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         return null;
     }
 
-    public Specification<Award>  getSpecificationAwardDetails(String searchName, String status, Long awardNumber) {
+    public Specification<Award>  getSpecificationAwardDetails(String searchName, String status) {
 
         Specification<Award> awardSpecifications = Specification
 
@@ -399,13 +405,14 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                         SearchUtils.checkNullOrEmptyString(searchName)
                                 ? null :AwardSpecificationUtils.subsidyMeasureTitle(searchName.trim())
                                 .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.subsidyNumber(searchName.trim()))
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
                                         ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
                                 .or(SearchUtils.checkNullOrEmptyString(searchName)
                                         ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim())))
                 // status from input parameter
                 .and(SearchUtils.checkNullOrEmptyString(status)
-                        ? null : AwardSpecificationUtils.awardByStatus(status.trim()))
-                 .and (awardNumber != null ? AwardSpecificationUtils.awardByNumber(awardNumber):null);
+                        ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
         return awardSpecifications;
     }
 
@@ -471,5 +478,78 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         }
         return userDetailsResponse;
     }
+    
+    
+    @Override
+    public AuditLogsResultsResponse findMatchingAuditLogDetails(String userName,String searchName, 
+                             Integer page, Integer recordsPerPage,String[] sortBy) {
+
+    	log.info("inside findMatchingAuditLogDetails ");
+        Page<AuditLogs> pageAwards = null;
+        List<AuditLogs> auditResults = null;
+        
+        Specification<AuditLogs> auditSpecifications = getSpecificationAuditDetails(searchName);
+       
+
+        List<Sort.Order> orders = getOrderByConditionAudits(sortBy);
+        Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage,Sort.by(orders));
+
+        log.info("speci findMatchingAuditLogDetails "+userName);
+        if(!StringUtils.isEmpty(searchName)) {
+            pageAwards = auditLogsRepository.findAll(auditSpecifications,pagingSortAwards);
+            auditResults = pageAwards.getContent();
+        } else {
+        	
+        	pageAwards = auditLogsRepository.findByUserName(userName,  pagingSortAwards);
+        	 auditResults = pageAwards.getContent();
+        }
+        AuditLogsResultsResponse searchResults = null;
+       
+        log.info("speci findMatchingAuditLogDetails ");
+        if (!auditResults.isEmpty()) {
+        	 log.info("auditResults IS NOT EMPTY ");
+            searchResults = new AuditLogsResultsResponse(auditResults, pageAwards.getTotalElements(),
+                    pageAwards.getNumber() + 1, pageAwards.getTotalPages());
+        } else {
+
+            throw new SearchResultNotFoundException("AwardResults NotFound");
+        }
+        return searchResults;
+    }
+    
+    public Specification<AuditLogs>  getSpecificationAuditDetails(String searchName) {
+
+        /*Specification<AuditLogs> auditSpecifications = Specification
+
+                // subsidyMeasureTitle from input parameter
+                .where(
+                        SearchUtils.checkNullOrEmptyString(searchName)
+                                ? null :AwardSpecificationUtils.auditUser(searchName.trim())
+                               
+                                );
+                // status from input parameter
+              
+        return auditSpecifications;*/
+    	return null;
+    }
+    
+    private List<Sort.Order> getOrderByConditionAudits(String[] sortBy) {
+
+        List<Sort.Order> orders = new ArrayList<Sort.Order>();
+
+        if (sortBy != null && sortBy.length > 0 && sortBy[0].contains("-")) {
+            // will sort more than 2 fields
+            // sortOrder="field, direction"
+            for (String sortOrder : sortBy) {
+                String[] _sort = sortOrder.split("-");
+                orders.add(new Sort.Order(getSortDirection(_sort[1]), _sort[0]));
+            }
+        } else {
+            //Default sort - Legal Granting Date with recent one at top
+            orders.add(new Sort.Order(getSortDirection("desc"), "createdTimestamp"));
+        }
+        return orders;
+    }
+
 
 }
