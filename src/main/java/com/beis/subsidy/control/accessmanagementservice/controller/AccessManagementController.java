@@ -4,6 +4,7 @@ import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAP
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
+import com.beis.subsidy.control.accessmanagementservice.request.AuditSearchRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetailsRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.AuditLogsResultsResponse;
@@ -37,6 +38,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -221,24 +225,26 @@ public class AccessManagementController {
             produces = APPLICATION_JSON_VALUE
     )
     public ResponseEntity<AuditLogsResultsResponse> retrieveAuditDetails(@RequestHeader("userPrinciple")
-             HttpHeaders userPrinciple, @RequestParam(value = "searchName",required = false) String searchName,
-             @RequestParam(value = "page", required = false) Integer page,
-             @RequestParam(value = "recordsPerPage", required = false) Integer recordsPerPage,
-             @RequestParam(value = "sortBy", required = false)  String[] sortBy) {
+             HttpHeaders userPrinciple, @Valid @RequestBody AuditSearchRequest searchInput) {
 
         log.info("{}:: Before calling retrieveAuditDetails::{}", loggingComponentName);
         
         //Set Default Page records
-        if(recordsPerPage == null) {
-            recordsPerPage = 10;
-        }
+        
+        if(searchInput.getTotalRecordsPerPage() == 0) {
+			searchInput.setTotalRecordsPerPage(10);
+		}
 
-        if(page == null) {
-            page = 1;
+       
+        LocalDate startDate=null;
+        LocalDate endDate =null;
+        if(!StringUtils.isEmpty(searchInput.getSearchStartDate()) && !StringUtils.isEmpty(searchInput.getSearchEndDate())) {
+        	 startDate =LocalDate.parse(searchInput.getSearchStartDate());
+        	 endDate =LocalDate.parse(searchInput.getSearchEndDate());
         }
       String userName=  SearchUtils.getUserName(objectMapper, userPrinciple);
         AuditLogsResultsResponse searchResults = accessManagementService.findMatchingAuditLogDetails(userName,
-        		searchName, page, recordsPerPage, sortBy);
+        		searchInput.getSearchName(),startDate,endDate, searchInput.getPageNumber(), searchInput.getTotalRecordsPerPage(), searchInput.getSortBy());
         return new ResponseEntity<AuditLogsResultsResponse>(searchResults, HttpStatus.OK);
     }
 }

@@ -32,6 +32,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -87,7 +88,7 @@ public class UserManagementController {
         audit.setEventType("create User");
         audit.setEventId(response.getId());
         audit.setGaName(gaName);
-        audit.setCreatedTimestamp(LocalDateTime.now());
+        audit.setCreatedTimestamp(LocalDate.now());
         audit.setEventMessage("User created by  "+userName);
         auditLogsRepository.save(audit);
         log.info("audit entry created for user "+userName);
@@ -137,7 +138,7 @@ public class UserManagementController {
          audit.setEventId(userId);
          audit.setGaName(gaName);
          audit.setEventMessage("User updated by  "+userName);
-         audit.setCreatedTimestamp(LocalDateTime.now());
+         audit.setCreatedTimestamp(LocalDate.now());
          auditLogsRepository.save(audit);
          log.info("audit entry created for updateUser "+userName);
         return ResponseEntity.status(response).build();
@@ -167,7 +168,7 @@ public class UserManagementController {
          audit.setEventId(userId);
          audit.setGaName(gaName);
          audit.setEventMessage("User deactivated by  "+userName);
-         audit.setCreatedTimestamp(LocalDateTime.now());
+         audit.setCreatedTimestamp(LocalDate.now());
          auditLogsRepository.save(audit);
          log.info("audit entry created for deleteUser "+userName);
         return ResponseEntity.status(204).body(response);

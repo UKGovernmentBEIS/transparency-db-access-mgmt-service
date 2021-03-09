@@ -8,6 +8,8 @@ import com.beis.subsidy.control.accessmanagementservice.response.SearchSubsidyRe
 import com.beis.subsidy.control.accessmanagementservice.utils.UserPrinciple;
 import org.springframework.http.ResponseEntity;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface AccessManagementService {
@@ -29,5 +31,5 @@ public interface AccessManagementService {
     SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status, Integer page,
                         Integer recordsPerPage, UserPrinciple userPrinciple,String[] sortBy);
     
-    AuditLogsResultsResponse findMatchingAuditLogDetails(String userName,String searchName, Integer page, Integer recordsPerPage, String[] sortBy);
+    AuditLogsResultsResponse findMatchingAuditLogDetails(String userName,String searchName,LocalDate searchStartDate,LocalDate searchEndDate, Integer page, Integer recordsPerPage, String[] sortBy);
 }

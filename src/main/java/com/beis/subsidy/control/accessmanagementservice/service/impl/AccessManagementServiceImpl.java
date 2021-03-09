@@ -51,6 +51,7 @@ import org.springframework.util.StringUtils;
 import uk.gov.service.notify.NotificationClientException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -481,14 +482,14 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     
     
     @Override
-    public AuditLogsResultsResponse findMatchingAuditLogDetails(String userName,String searchName, 
+    public AuditLogsResultsResponse findMatchingAuditLogDetails(String userName,String searchName, LocalDate searchStartDate,LocalDate searchEndDate,
                              Integer page, Integer recordsPerPage,String[] sortBy) {
 
     	log.info("inside findMatchingAuditLogDetails ");
         Page<AuditLogs> pageAwards = null;
         List<AuditLogs> auditResults = null;
         
-        Specification<AuditLogs> auditSpecifications = getSpecificationAuditDetails(searchName);
+        Specification<AuditLogs> auditSpecifications = getSpecificationAuditDetails(searchName,searchStartDate,searchEndDate);
        
 
         List<Sort.Order> orders = getOrderByConditionAudits(sortBy);
@@ -512,22 +513,32 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                     pageAwards.getNumber() + 1, pageAwards.getTotalPages());
         } else {
 
-            throw new SearchResultNotFoundException("AwardResults NotFound");
+            throw new SearchResultNotFoundException("Audit Logs NotFound");
         }
         return searchResults;
     }
     
-    public Specification<AuditLogs>  getSpecificationAuditDetails(String searchName) {
+    public Specification<AuditLogs>  getSpecificationAuditDetails(String searchName,LocalDate searchStartDate,LocalDate searchEndDate) {
 
         Specification<AuditLogs> auditSpecifications = Specification
 
                 // subsidyMeasureTitle from input parameter
-                .where(
+                /*.where(
                         SearchUtils.checkNullOrEmptyString(searchName)
                                 ? null :AwardSpecificationUtils.auditUser(searchName.trim())
                                
                                 );
                 // status from input parameter
+*/        
+        .where(
+                SearchUtils.checkNullOrEmptyString(searchName)
+                        ? null :AwardSpecificationUtils.auditUser(searchName.trim())
+                        .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                ? null :AwardSpecificationUtils.auditGrantingAuthority(searchName.trim()))
+                        .and(searchStartDate==null || searchEndDate==null
+                                ? null :AwardSpecificationUtils.auditLogRange(searchStartDate,searchEndDate)));
+        // status from input parameter
+       
               
         return auditSpecifications;
     	
@@ -537,11 +548,11 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
         List<Sort.Order> orders = new ArrayList<Sort.Order>();
 
-        if (sortBy != null && sortBy.length > 0 && sortBy[0].contains("-")) {
+        if (sortBy != null && sortBy.length > 0 && sortBy[0].contains(",")) {
             //  will sort more than 2 fields
             // sortOrder="field, direction"
             for (String sortOrder : sortBy) {
-                String[] _sort = sortOrder.split("-");
+                String[] _sort = sortOrder.split(",");
                 orders.add(new Sort.Order(getSortDirection(_sort[1]), _sort[0]));
             }
         } else {
