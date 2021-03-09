@@ -163,7 +163,7 @@ public class AccessManagementController {
                                                      @Valid @RequestBody UpdateAwardDetailsRequest awardUpdateRequest,
                                                      @PathVariable("awardNumber") Long awardNumber) {
 
-         log.info("{}:: Before calling updateSubsidyAward::{}", loggingComponentName);
+         log.info("{}:: Before calling updateSubsidyAward", loggingComponentName);
         UserPrinciple userPrincipleResp = SearchUtils.validateAdminGAApproverRoleFromUpObj(objectMapper,userPrinciple);
          if (StringUtils.isEmpty(awardNumber) || Objects.isNull(awardUpdateRequest)) {
               throw new InvalidRequestException("Bad Request AwardId is null or requestBody is null");
@@ -183,7 +183,7 @@ public class AccessManagementController {
              @RequestParam(value = "recordsPerPage", required = false) Integer recordsPerPage,
              @RequestParam(value = "sortBy", required = false)  String[] sortBy) {
 
-        log.info("{}:: Before calling retrieveSubsidyAwardDetails::{}", loggingComponentName);
+        log.info("{}:: Before calling retrieveSubsidyAwardDetails", loggingComponentName);
         UserPrinciple userPrincipleObj = SearchUtils.isRoleValid(objectMapper,userPrinciple);
         //Set Default Page records
         if(recordsPerPage == null) {

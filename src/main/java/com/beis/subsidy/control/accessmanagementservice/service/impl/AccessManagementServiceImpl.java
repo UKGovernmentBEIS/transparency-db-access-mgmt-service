@@ -217,14 +217,15 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             award.setGrantingAuthority(grantingAuthority);
         }
         if (!StringUtils.isEmpty(awardUpdateRequest.getStatus()) &&
-                "Rejected".equals(awardUpdateRequest.getStatus().trim()) &&
+                ("Rejected".equals(awardUpdateRequest.getStatus().trim()) ||
+                 "Deleted".equals(awardUpdateRequest.getStatus().trim())) &&
                 !StringUtils.isEmpty(awardUpdateRequest.getReason())) {
             award.setReason(awardUpdateRequest.getReason().trim());
         }
         awardRepository.save(award);
 
         //notification call START here
-        UserDetailsResponse userDetailsResponse =getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
+       /* UserDetailsResponse userDetailsResponse =getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
         List<UserResponse> users= userDetailsResponse.getUserProfiles();
 
         for (UserResponse userResponse : users) {
@@ -234,7 +235,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
   		    } catch (NotificationClientException e) {
 
   		    }
-        }
+        }*/
         //end Notification
         return ResponseEntity.status(200).build();
     }
