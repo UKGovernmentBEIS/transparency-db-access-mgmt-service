@@ -227,7 +227,7 @@ public class AccessManagementController {
     public ResponseEntity<AuditLogsResultsResponse> retrieveAuditDetails(@RequestHeader("userPrinciple")
              HttpHeaders userPrinciple, @Valid @RequestBody AuditSearchRequest searchInput) {
 
-        log.info("{}:: Before calling retrieveAuditDetails::{}", loggingComponentName);
+        log.info("{}::  Before calling retrieveAuditDetails::{}", loggingComponentName);
         
         //Set Default Page records
         
