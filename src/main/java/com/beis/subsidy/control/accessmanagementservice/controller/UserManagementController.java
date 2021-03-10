@@ -16,6 +16,7 @@ import com.beis.subsidy.control.accessmanagementservice.response.UserRolesRespon
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.EmailUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
+import com.beis.subsidy.control.accessmanagementservice.utils.UserPrinciple;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
@@ -151,7 +152,7 @@ public class UserManagementController {
                                           @PathVariable("userId") String userId) {
 
         log.info("{}::Before calling deleteUser", loggingComponentName);
-        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        UserPrinciple userPrincipleObj = SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         if (StringUtils.isEmpty(userId)) {
             log.error("{}:: userId is empty:: {}",loggingComponentName, userId);
             throw new InvalidRequestException("userId is null or empty");
@@ -160,16 +161,16 @@ public class UserManagementController {
         String access_token = getBearerToken();
         int response =  userManagementService.deleteUser(access_token,userId);
         AuditLogs audit = new AuditLogs();
-        String userName= SearchUtils.getUserName(objectMapper, userPrinciple);
-        String gaName= SearchUtils.getGaName(objectMapper, userPrinciple);
+        String userName= userPrincipleObj.getUserName();
+        String gaName= userPrincipleObj.getGrantingAuthorityGroupName();
          audit.setUserName(userName);
          audit.setEventType("delete User");
          audit.setEventId(userId);
          audit.setGaName(gaName);
-         audit.setEventMessage("User deactivated by  "+userName);
+         audit.setEventMessage("User deactivated by  " + userName);
          audit.setCreatedTimestamp(LocalDateTime.now());
          auditLogsRepository.save(audit);
-         log.info("audit entry created for deleteUser "+userName);
+         log.info("{}::audit entry created for deleteUser",loggingComponentName);
         return ResponseEntity.status(204).body(response);
     }
 
@@ -236,7 +237,7 @@ public class UserManagementController {
     )
     public ResponseEntity<Object> retrieveAllUserDetails(@RequestHeader("userPrinciple") HttpHeaders userPrinciple) {
 
-        log.info("Before calling retrieveAllUserDetails");
+        log.info("{} ::Before calling retrieveAllUserDetails",loggingComponentName);
         SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         UserDetailsResponse response =  userManagementService.getAllUsers(access_token);
@@ -249,15 +250,13 @@ public class UserManagementController {
     )
     public ResponseEntity<Object> sendFeedBack(@RequestBody FeedbackRequest request) {
 
-        log.info("{}::Before calling sendFeedBack");
+        log.info("{}::Before calling sendFeedBack",loggingComponentName);
         
         try {
-        	
-    		  log.info(":feedback email sending ....");
-			EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),environment.getProperty("feedback_template_id"));
-		} catch (NotificationClientException e) {
+      			EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),environment.getProperty("feedback_template_id"));
+		 } catch (NotificationClientException e) {
 			
-			log.error("error in sending feedback mail");
+			log.error("error in sending feedback mail", e);
 		}
 	    
         return ResponseEntity.status(201).body("Success");
