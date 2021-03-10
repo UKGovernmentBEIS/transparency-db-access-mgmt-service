@@ -222,8 +222,12 @@ public class UserManagementController {
 
         log.info("{}::Before calling sendFeedBack",loggingComponentName);
         
+        String templateId="feedback_template_id";
         try {
-      			EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),environment.getProperty("feedback_template_id"));
+        	if("prod".equalsIgnoreCase(environment.getProperty("env"))){
+        		templateId="prod_feedback_template_id";
+        	}
+      			EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),environment.getProperty(templateId));
 		 } catch (NotificationClientException e) {
 			
 			log.error("error in sending feedback mail", e);
