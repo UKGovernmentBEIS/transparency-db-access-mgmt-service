@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -24,17 +25,21 @@ public class SearchSubsidyResultsResponse {
 	public long totalSearchResults;
 	public int currentPage;
 	public int totalPages;
+	@JsonProperty
+	private Map<String, Integer> awardStatusCounts;
 
 	@JsonProperty
 	private List<AwardResponse> awards;
 
 	public SearchSubsidyResultsResponse(List<Award> awards, long totalSearchResults,
-										int currentPage, int totalPages) {
+										int currentPage, int totalPages, Map<String, Integer> awardStatusCounts) {
 
 		this.awards = awards.stream().map(award ->
 				new AwardResponse(award)).collect(Collectors.toList());
 		this.totalSearchResults = totalSearchResults;
 		this.currentPage = currentPage;
 		this.totalPages = totalPages;
+		this.awardStatusCounts = awardStatusCounts;
+
 	}
 }

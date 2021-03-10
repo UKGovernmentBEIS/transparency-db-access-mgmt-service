@@ -88,23 +88,17 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     @Override
     public SearchResults findBEISAdminDashboardData(UserPrinciple userPrincipleObj) {
 
-        log.info("{}:: Inside findBEISAdminDashboardData {}",userPrincipleObj);
+        log.info("{}:: Inside findBEISAdminDashboardData {}",loggingComponentName);
         Map<String, Integer> gaUserActivityCount = grantingAuthorityCounts(userPrincipleObj);
-        log.info("{}:: After gaUserActivityCount size",gaUserActivityCount.size());
         List<Award> awardList = awardRepository.findAll();
 
-        Map<String, Integer> awardUserActivityCount = adminAwardCounts(userPrincipleObj, awardList);
-        log.info("{}:: After awardUserActivityCount size",awardUserActivityCount.size());
+        Map<String, Integer> awardUserActivityCount = adminAwardCounts(awardList);
         List<SubsidyMeasure> subsidyMeasuresList = subsidyMeasureRepository.findAll();
         Map<String, Integer> smUserActivityCount = subsidyMeasureCounts(userPrincipleObj, subsidyMeasuresList);
-        log.info("{}:: After smUserActivityCount size",smUserActivityCount.size());
         SearchResults searchResults = null;
         searchResults = new SearchResults(gaUserActivityCount);
-        log.info("{}:: After SearchResults constructor");
         addAwardToSearchResult(awardUserActivityCount,searchResults);
-        log.info("{}:: After addAwardToSearchResult");
         addSubsidiesToSearchResults(searchResults, smUserActivityCount);
-        log.info("{}:: After addSubsidiesToSearchResults");
         return searchResults;
     }
 
@@ -117,7 +111,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         }
 
         List<Award> allAwardList = awardRepository.findAll(getAwardSpecification(gaId));
-        Map<String, Integer> awardUserActionCount = adminAwardCounts(userPrincipleObj, allAwardList);
+        Map<String, Integer> awardUserActionCount = adminAwardCounts(allAwardList);
         addAwardToSearchResult(awardUserActionCount, searchResults);
 
         List<SubsidyMeasure> allSubObjList = subsidyMeasureRepository.findAll(subsidyMeasureByGrantingAuthority(gaId));
@@ -272,9 +266,9 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         SearchSubsidyResultsResponse searchResults = null;
 
         if (!awardResults.isEmpty()) {
-
+            List<Award> awards = awardRepository.findAll();
             searchResults = new SearchSubsidyResultsResponse(awardResults, pageAwards.getTotalElements(),
-                    pageAwards.getNumber() + 1, pageAwards.getTotalPages());
+                    pageAwards.getNumber() + 1, pageAwards.getTotalPages(),adminAwardCounts(awards));
         } else {
 
             throw new SearchResultNotFoundException("AwardResults NotFound");
@@ -322,7 +316,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         smUserActivityCount.put("totalInactiveScheme",totalInactiveScheme);
         return smUserActivityCount;
     }
-    private Map<String, Integer> adminAwardCounts(UserPrinciple userPrincipleObj, List<Award> awardList) {
+
+    private Map<String, Integer> adminAwardCounts(List<Award> awardList) {
         int totalSubsidyAward = 0;
         int totalAwaitingAward = 0;
         int totalPublishedAward = 0;
@@ -333,14 +328,11 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             for(Award award : awardList){
                 if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_AWAITING_APPROVAL)){
                     totalAwaitingAward++;
-                }
-                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_PUBLISHED_STATUS)){
+                } else if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_PUBLISHED_STATUS)){
                     totalPublishedAward++;
-                }
-                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_REJECTED)){
+                } else if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_REJECTED)){
                     totalRejectedAward++;
-                }
-                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_INACTIVE)){
+                } else if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_INACTIVE)){
                     totalInactiveAward++;
                 }
             }
@@ -557,6 +549,4 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         }
         return orders;
     }
-
-
 }
