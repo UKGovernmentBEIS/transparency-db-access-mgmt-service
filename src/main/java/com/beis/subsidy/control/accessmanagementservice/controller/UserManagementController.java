@@ -81,17 +81,7 @@ public class UserManagementController {
              userManagementService.createGroupForUser(access_token, roleId, response.getId());
         });
         
-        AuditLogs audit = new AuditLogs();
-       String userName= SearchUtils.getUserName(objectMapper, userPrinciple);
-       String gaName= SearchUtils.getGaName(objectMapper, userPrinciple);
-        audit.setUserName(userName);
-        audit.setEventType("create User");
-        audit.setEventId(response.getId());
-        audit.setGaName(gaName);
-        audit.setCreatedTimestamp(LocalDateTime.now());
-        audit.setEventMessage("User created by  "+userName);
-        auditLogsRepository.save(audit);
-        log.info("audit entry created for user "+userName);
+      
      return ResponseEntity.status(201).body(response);
     }
 
@@ -130,17 +120,7 @@ public class UserManagementController {
         SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         int response =  userManagementService.updateUser(access_token,userId,request);
-        AuditLogs audit = new AuditLogs();
-        String userName= SearchUtils.getUserName(objectMapper, userPrinciple);
-        String gaName= SearchUtils.getGaName(objectMapper, userPrinciple);
-         audit.setUserName(userName);
-         audit.setEventType("update User");
-         audit.setEventId(userId);
-         audit.setGaName(gaName);
-         audit.setEventMessage("User updated by  "+userName);
-         audit.setCreatedTimestamp(LocalDateTime.now());
-         auditLogsRepository.save(audit);
-         log.info("audit entry created for updateUser "+userName);
+       
         return ResponseEntity.status(response).build();
     }
 
@@ -160,17 +140,7 @@ public class UserManagementController {
         }
         String access_token = getBearerToken();
         int response =  userManagementService.deleteUser(access_token,userId);
-        AuditLogs audit = new AuditLogs();
-        String userName= userPrincipleObj.getUserName();
-        String gaName= userPrincipleObj.getGrantingAuthorityGroupName();
-         audit.setUserName(userName);
-         audit.setEventType("delete User");
-         audit.setEventId(userId);
-         audit.setGaName(gaName);
-         audit.setEventMessage("User deactivated by  " + userName);
-         audit.setCreatedTimestamp(LocalDateTime.now());
-         auditLogsRepository.save(audit);
-         log.info("{}::audit entry created for deleteUser",loggingComponentName);
+       
         return ResponseEntity.status(204).body(response);
     }
 

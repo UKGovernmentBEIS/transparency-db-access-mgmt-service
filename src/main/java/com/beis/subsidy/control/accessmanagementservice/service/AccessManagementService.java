@@ -29,5 +29,5 @@ public interface AccessManagementService {
     SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status, Integer page,
                         Integer recordsPerPage, UserPrinciple userPrinciple,String[] sortBy);
     
-    AuditLogsResultsResponse findMatchingAuditLogDetails(String userName,String searchName, Integer page, Integer recordsPerPage, String[] sortBy);
+    
 }

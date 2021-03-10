@@ -6,7 +6,7 @@ import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequest
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetailsRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.AuditLogsResultsResponse;
+
 import com.beis.subsidy.control.accessmanagementservice.response.GrantingAuthorityResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchResults;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchSubsidyResultsResponse;
@@ -217,31 +217,6 @@ public class AccessManagementController {
         return openIdTokenResponse.getAccessToken();
     }
     
-    
-    
-    @PostMapping(
-            value = "/auditlogs",
-            produces = APPLICATION_JSON_VALUE
-    )
-    public ResponseEntity<AuditLogsResultsResponse> retrieveAuditDetails(@RequestHeader("userPrinciple")
-             HttpHeaders userPrinciple, @RequestParam(value = "searchName",required = false) String searchName,
-             @RequestParam(value = "page", required = false) Integer page,
-             @RequestParam(value = "recordsPerPage", required = false) Integer recordsPerPage,
-             @RequestParam(value = "sortBy", required = false)  String[] sortBy) {
-
-        log.info("{}:: Before calling retrieveAuditDetails::{}", loggingComponentName);
-        
-        //Set Default Page records
-        if(recordsPerPage == null) {
-            recordsPerPage = 10;
-        }
-
-        if(page == null) {
-            page = 1;
-        }
-      String userName=  SearchUtils.getUserName(objectMapper, userPrinciple);
-        AuditLogsResultsResponse searchResults = accessManagementService.findMatchingAuditLogDetails(userName,
-        		searchName, page, recordsPerPage, sortBy);
-        return new ResponseEntity<AuditLogsResultsResponse>(searchResults, HttpStatus.OK);
-    }
+   
+   
 }
