@@ -29,10 +29,6 @@ public class AuditLogs {
 	@Column(name = "ID")
 	private Long id;
 
-	/*@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "gaId", nullable = false, insertable = false, updatable = false)
-	private GrantingAuthority grantingAuthority;*/
-
 	@Column(name = "USER_NAME")
 	private String userName;
 
