@@ -5,7 +5,6 @@ import com.beis.subsidy.control.accessmanagementservice.exception.AccessManageme
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
-import com.beis.subsidy.control.accessmanagementservice.model.AuditLogs;
 import com.beis.subsidy.control.accessmanagementservice.repository.AuditLogsRepository;
 import com.beis.subsidy.control.accessmanagementservice.request.*;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
@@ -32,8 +31,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
-
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -80,8 +77,8 @@ public class UserManagementController {
         request.getGrpRoleIds().forEach(roleId -> {
              userManagementService.createGroupForUser(access_token, roleId, response.getId());
         });
-        
-      
+
+        log.info("{}::end of add user",loggingComponentName);
      return ResponseEntity.status(201).body(response);
     }
 
@@ -120,7 +117,6 @@ public class UserManagementController {
         SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         int response =  userManagementService.updateUser(access_token,userId,request);
-       
         return ResponseEntity.status(response).build();
     }
 
@@ -140,7 +136,7 @@ public class UserManagementController {
         }
         String access_token = getBearerToken();
         int response =  userManagementService.deleteUser(access_token,userId);
-       
+        log.info("{}::end of deleteUser",loggingComponentName);
         return ResponseEntity.status(204).body(response);
     }
 
