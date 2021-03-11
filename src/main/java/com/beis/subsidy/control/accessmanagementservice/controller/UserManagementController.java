@@ -223,7 +223,8 @@ public class UserManagementController {
         	if("prod".equalsIgnoreCase(environment.getProperty("env"))){
         		templateId="prod_feedback_template_id";
         	}
-      			EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),environment.getProperty(templateId));
+      			EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
+                        environment.getProperty(templateId));
 		 } catch (NotificationClientException e) {
 			
 			log.error("error in sending feedback mail", e);
