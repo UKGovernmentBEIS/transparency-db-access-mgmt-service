@@ -89,13 +89,13 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     @Override
     public SearchResults findBEISAdminDashboardData(UserPrinciple userPrincipleObj) {
 
+        log.info("{}:: Inside findBEISAdminDashboardData {}",loggingComponentName);
         Map<String, Integer> gaUserActivityCount = grantingAuthorityCounts(userPrincipleObj);
         List<Award> awardList = awardRepository.findAll();
-        Map<String, Integer> awardUserActivityCount = adminAwardCounts(userPrincipleObj, awardList);
 
+        Map<String, Integer> awardUserActivityCount = adminAwardCounts(awardList);
         List<SubsidyMeasure> subsidyMeasuresList = subsidyMeasureRepository.findAll();
         Map<String, Integer> smUserActivityCount = subsidyMeasureCounts(userPrincipleObj, subsidyMeasuresList);
-
         SearchResults searchResults = null;
         searchResults = new SearchResults(gaUserActivityCount);
         addAwardToSearchResult(awardUserActivityCount,searchResults);
@@ -108,11 +108,12 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         SearchResults searchResults = new SearchResults();
         Long gaId = getGrantingAuthorityIdByName(userPrincipleObj.getGrantingAuthorityGroupName());
         if(gaId == null || gaId <= 0){
+            log.error("{}::Inside if method of findGAAdminDashboardData", loggingComponentName);
             throw new UnauthorisedAccessException("Invalid granting authority name");
         }
 
         List<Award> allAwardList = awardRepository.findAll(getAwardSpecification(gaId));
-        Map<String, Integer> awardUserActionCount = adminAwardCounts(userPrincipleObj, allAwardList);
+        Map<String, Integer> awardUserActionCount = adminAwardCounts(allAwardList);
         addAwardToSearchResult(awardUserActionCount, searchResults);
 
         List<SubsidyMeasure> allSubObjList = subsidyMeasureRepository.findAll(subsidyMeasureByGrantingAuthority(gaId));
@@ -212,14 +213,15 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             award.setGrantingAuthority(grantingAuthority);
         }
         if (!StringUtils.isEmpty(awardUpdateRequest.getStatus()) &&
-                "Rejected".equals(awardUpdateRequest.getStatus().trim()) &&
+                ("Rejected".equals(awardUpdateRequest.getStatus().trim()) ||
+                 "Deleted".equals(awardUpdateRequest.getStatus().trim())) &&
                 !StringUtils.isEmpty(awardUpdateRequest.getReason())) {
             award.setReason(awardUpdateRequest.getReason().trim());
         }
         awardRepository.save(award);
 
         //notification call START here
-        UserDetailsResponse userDetailsResponse =getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
+       /* UserDetailsResponse userDetailsResponse =getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
         List<UserResponse> users= userDetailsResponse.getUserProfiles();
 
         for (UserResponse userResponse : users) {
@@ -229,7 +231,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
   		    } catch (NotificationClientException e) {
 
   		    }
-        }
+        }*/
         //end Notification
         return ResponseEntity.status(200).build();
     }
@@ -266,9 +268,9 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         SearchSubsidyResultsResponse searchResults = null;
 
         if (!awardResults.isEmpty()) {
-
+            List<Award> awards = awardRepository.findAll();
             searchResults = new SearchSubsidyResultsResponse(awardResults, pageAwards.getTotalElements(),
-                    pageAwards.getNumber() + 1, pageAwards.getTotalPages());
+                    pageAwards.getNumber() + 1, pageAwards.getTotalPages(),adminAwardCounts(awards));
         } else {
 
             throw new SearchResultNotFoundException("AwardResults NotFound");
@@ -316,7 +318,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         smUserActivityCount.put("totalInactiveScheme",totalInactiveScheme);
         return smUserActivityCount;
     }
-    private Map<String, Integer> adminAwardCounts(UserPrinciple userPrincipleObj, List<Award> awardList) {
+
+    private Map<String, Integer> adminAwardCounts(List<Award> awardList) {
         int totalSubsidyAward = 0;
         int totalAwaitingAward = 0;
         int totalPublishedAward = 0;
@@ -327,14 +330,11 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             for(Award award : awardList){
                 if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_AWAITING_APPROVAL)){
                     totalAwaitingAward++;
-                }
-                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_PUBLISHED_STATUS)){
+                } else if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_PUBLISHED_STATUS)){
                     totalPublishedAward++;
-                }
-                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_REJECTED)){
+                } else if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_REJECTED)){
                     totalRejectedAward++;
-                }
-                if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_INACTIVE)){
+                } else if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_INACTIVE)){
                     totalInactiveAward++;
                 }
             }
@@ -488,9 +488,9 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     	log.info("inside findMatchingAuditLogDetails ");
         Page<AuditLogs> pageAwards = null;
         List<AuditLogs> auditResults = null;
-        
+
         Specification<AuditLogs> auditSpecifications = getSpecificationAuditDetails(searchName,searchStartDate,searchEndDate);
-       
+
 
         List<Sort.Order> orders = getOrderByConditionAudits(sortBy);
         Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage,Sort.by(orders));
@@ -500,12 +500,12 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             pageAwards = auditLogsRepository.findAll(auditSpecifications,pagingSortAwards);
             auditResults = pageAwards.getContent();
         } else {
-        	
+
         	pageAwards = auditLogsRepository.findByUserName(userName,  pagingSortAwards);
         	 auditResults = pageAwards.getContent();
         }
         AuditLogsResultsResponse searchResults = null;
-       
+
         log.info("speci findMatchingAuditLogDetails ");
         if (!auditResults.isEmpty()) {
         	 log.info("auditResults IS NOT EMPTY ");
@@ -517,7 +517,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         }
         return searchResults;
     }
-    
+
     public Specification<AuditLogs>  getSpecificationAuditDetails(String searchName,LocalDate searchStartDate,LocalDate searchEndDate) {
 
         Specification<AuditLogs> auditSpecifications = Specification
@@ -526,10 +526,10 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 /*.where(
                         SearchUtils.checkNullOrEmptyString(searchName)
                                 ? null :AwardSpecificationUtils.auditUser(searchName.trim())
-                               
+
                                 );
                 // status from input parameter
-*/        
+*/
         .where(
                 SearchUtils.checkNullOrEmptyString(searchName)
                         ? null :AwardSpecificationUtils.auditUser(searchName.trim())
@@ -538,12 +538,12 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                         .and(searchStartDate==null || searchEndDate==null
                                 ? null :AwardSpecificationUtils.auditLogRange(searchStartDate,searchEndDate)));
         // status from input parameter
-       
-              
+
+
         return auditSpecifications;
-    	
+
     }
-    
+
     private List<Sort.Order> getOrderByConditionAudits(String[] sortBy) {
 
         List<Sort.Order> orders = new ArrayList<Sort.Order>();

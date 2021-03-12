@@ -16,6 +16,7 @@ import com.beis.subsidy.control.accessmanagementservice.response.UserRolesRespon
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.EmailUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
+import com.beis.subsidy.control.accessmanagementservice.utils.UserPrinciple;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
@@ -152,7 +153,7 @@ public class UserManagementController {
                                           @PathVariable("userId") String userId) {
 
         log.info("{}::Before calling deleteUser", loggingComponentName);
-        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        UserPrinciple userPrincipleObj = SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         if (StringUtils.isEmpty(userId)) {
             log.error("{}:: userId is empty:: {}",loggingComponentName, userId);
             throw new InvalidRequestException("userId is null or empty");
@@ -203,7 +204,8 @@ public class UserManagementController {
         UserResponse response = userManagementService.getUserDetails(access_token,userId);
         UserRolesResponse roleResponse =  userManagementService.getUserGroup(access_token,userId);
         if (Objects.isNull(roleResponse) || CollectionUtils.isEmpty(roleResponse.getUserRoles())) {
-            throw new SearchResultNotFoundException("user group not found");
+            log.error("{}:: After roleResponse in retrieveUserDetailsId is null",loggingComponentName);
+            throw new SearchResultNotFoundException("User group not found");
         }
         response.setRoleName(roleResponse.getUserRoles().stream().filter(
                 userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
@@ -236,7 +238,7 @@ public class UserManagementController {
     )
     public ResponseEntity<Object> retrieveAllUserDetails(@RequestHeader("userPrinciple") HttpHeaders userPrinciple) {
 
-        log.info("Before calling retrieveAllUserDetails");
+        log.info("{} ::Before calling retrieveAllUserDetails",loggingComponentName);
         SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         UserDetailsResponse response =  userManagementService.getAllUsers(access_token);
@@ -245,21 +247,25 @@ public class UserManagementController {
     
     @PostMapping(
             value = "/feedback"
-            
     )
     public ResponseEntity<Object> sendFeedBack(@RequestBody FeedbackRequest request) {
 
-        log.info("{}::Before calling sendFeedBack");
+        log.info("{}::Before calling sendFeedBack",loggingComponentName);
         
+        String templateId="feedback_template_id";
         try {
-        	
-    		  log.info(":feedback email sending ....");
-			EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),environment.getProperty("feedback_template_id"));
-		} catch (NotificationClientException e) {
+        	if("prod".equalsIgnoreCase(environment.getProperty("env"))){
+        		templateId="prod_feedback_template_id";
+        	}
+
+            log.info("{}::template Id",environment.getProperty(templateId));
+      		EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
+                        environment.getProperty(templateId));
+		 } catch (NotificationClientException e) {
 			
-			log.error("error in sending feedback mail");
+			log.error("error in sending feedback mail", e);
 		}
-	    
+
         return ResponseEntity.status(201).body("Success");
     }
 }

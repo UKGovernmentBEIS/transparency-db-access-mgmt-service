@@ -62,7 +62,7 @@ public final class AwardSpecificationUtils {
 	public static Specification<Award> beneficiaryName(String beneficiaryName) {
 
 		return (root, query, builder) -> builder.like(builder.lower(root.get("beneficiary").get("beneficiaryName")),
-				contains(beneficiaryName));
+				builder.lower(builder.literal("%" + beneficiaryName.trim() + "%")));
 	}
 
     public static Specification<Award> awardByNumber(Long awardNumber) {
@@ -72,7 +72,7 @@ public final class AwardSpecificationUtils {
     /**
 	 * To define specification for subsidy measure title
 	 *
-	 * @param subsidyMeasureTitle - Add subsidy measure title
+	 * @param userName - Add subsidy measure title
 	 * @return Specification<Award> - Specification for Award
 	 */
 	public static Specification<AuditLogs> auditUser(String userName) {

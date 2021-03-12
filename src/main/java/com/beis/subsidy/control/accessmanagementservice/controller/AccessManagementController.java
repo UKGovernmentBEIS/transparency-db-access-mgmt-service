@@ -76,14 +76,17 @@ public class AccessManagementController {
     @GetMapping("/beisadmin")
     public ResponseEntity<SearchResults> findBEISAdminDashboardData(@RequestHeader("userPrinciple") HttpHeaders userPrinciple) {
         UserPrinciple userPrincipleObj = null;
+        log.info("{}:: Inside findBEISAdminDashboardData search results",loggingComponentName);
         //role validation
         userPrincipleObj = SearchUtils.validateRoleFromUserPrincipleObject(objectMapper,userPrinciple,
                 AccessManagementConstant.BEIS_ADMIN_ROLE);
         try {
              SearchResults searchResults = accessManagementService.findBEISAdminDashboardData(userPrincipleObj);
+            log.info("{}:: After searchResults in findBEISAdminDashboardData search results",loggingComponentName);
             return new ResponseEntity<SearchResults>(searchResults, HttpStatus.OK);
         }
         catch(Exception e) {
+            log.error("{}:: inside catch block of findBEISAdminDashboardData search results",loggingComponentName, e);
             throw new SearchResultNotFoundException("Search Result not found");
         }
     }
@@ -130,8 +133,8 @@ public class AccessManagementController {
             SearchResults searchResults = accessManagementService.findGAEncoderDashboardData(userPrincipleObj);
             return new ResponseEntity<SearchResults>(searchResults, HttpStatus.OK);
         }
-        catch(SearchResultNotFoundException notFoundException) {
-            log.error("{}:: Result not found", loggingComponentName);
+        catch(SearchResultNotFoundException nfe) {
+            log.error("{}:: Result not found", loggingComponentName,nfe);
             throw new SearchResultNotFoundException("Search Result not found");
         }
     }
@@ -164,7 +167,7 @@ public class AccessManagementController {
                                                      @Valid @RequestBody UpdateAwardDetailsRequest awardUpdateRequest,
                                                      @PathVariable("awardNumber") Long awardNumber) {
 
-         log.info("{}:: Before calling updateSubsidyAward::{}", loggingComponentName);
+         log.info("{}:: Before calling updateSubsidyAward", loggingComponentName);
         UserPrinciple userPrincipleResp = SearchUtils.validateAdminGAApproverRoleFromUpObj(objectMapper,userPrinciple);
          if (StringUtils.isEmpty(awardNumber) || Objects.isNull(awardUpdateRequest)) {
               throw new InvalidRequestException("Bad Request AwardId is null or requestBody is null");
@@ -184,7 +187,7 @@ public class AccessManagementController {
              @RequestParam(value = "recordsPerPage", required = false) Integer recordsPerPage,
              @RequestParam(value = "sortBy", required = false)  String[] sortBy) {
 
-        log.info("{}:: Before calling retrieveSubsidyAwardDetails::{}", loggingComponentName);
+        log.info("{}:: Before calling retrieveSubsidyAwardDetails", loggingComponentName);
         UserPrinciple userPrincipleObj = SearchUtils.isRoleValid(objectMapper,userPrinciple);
         //Set Default Page records
         if(recordsPerPage == null) {
@@ -210,7 +213,6 @@ public class AccessManagementController {
         AccessTokenResponse openIdTokenResponse = graphAPILoginFeignClient
                 .getAccessIdToken(environment.getProperty("tenant-id"),map);
 
-
         if (openIdTokenResponse == null) {
             throw new AccessTokenException(HttpStatus.valueOf(500),
                     "Graph Api Service Failed while bearer token generate");
@@ -228,14 +230,14 @@ public class AccessManagementController {
              HttpHeaders userPrinciple, @Valid @RequestBody AuditSearchRequest searchInput) {
 
         log.info("{}::  Before calling retrieveAuditDetails::{}", loggingComponentName);
-        
+
         //Set Default Page records
-        
+
         if(searchInput.getTotalRecordsPerPage() == 0) {
 			searchInput.setTotalRecordsPerPage(10);
 		}
 
-       
+
         LocalDate startDate=null;
         LocalDate endDate =null;
         if(!StringUtils.isEmpty(searchInput.getSearchStartDate()) && !StringUtils.isEmpty(searchInput.getSearchEndDate())) {
