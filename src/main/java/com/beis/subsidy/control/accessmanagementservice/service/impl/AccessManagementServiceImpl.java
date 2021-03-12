@@ -51,6 +51,7 @@ import org.springframework.util.StringUtils;
 import uk.gov.service.notify.NotificationClientException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -107,6 +108,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         SearchResults searchResults = new SearchResults();
         Long gaId = getGrantingAuthorityIdByName(userPrincipleObj.getGrantingAuthorityGroupName());
         if(gaId == null || gaId <= 0){
+            log.error("{}::Inside if method of findGAAdminDashboardData", loggingComponentName);
             throw new UnauthorisedAccessException("Invalid granting authority name");
         }
 
@@ -479,4 +481,86 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     }
     
     
-  }
+    @Override
+    public AuditLogsResultsResponse findMatchingAuditLogDetails(String userName,String searchName, LocalDate searchStartDate,LocalDate searchEndDate,
+                             Integer page, Integer recordsPerPage,String[] sortBy) {
+
+    	log.info("inside findMatchingAuditLogDetails ");
+        Page<AuditLogs> pageAwards = null;
+        List<AuditLogs> auditResults = null;
+
+        Specification<AuditLogs> auditSpecifications = getSpecificationAuditDetails(searchName,searchStartDate,searchEndDate);
+
+
+        List<Sort.Order> orders = getOrderByConditionAudits(sortBy);
+        Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage,Sort.by(orders));
+
+        log.info("speci findMatchingAuditLogDetails "+userName);
+        if(!StringUtils.isEmpty(searchName)) {
+            pageAwards = auditLogsRepository.findAll(auditSpecifications,pagingSortAwards);
+            auditResults = pageAwards.getContent();
+        } else {
+
+        	pageAwards = auditLogsRepository.findByUserName(userName,  pagingSortAwards);
+        	 auditResults = pageAwards.getContent();
+        }
+        AuditLogsResultsResponse searchResults = null;
+
+        log.info("speci findMatchingAuditLogDetails ");
+        if (!auditResults.isEmpty()) {
+        	 log.info("auditResults IS NOT EMPTY ");
+            searchResults = new AuditLogsResultsResponse(auditResults, pageAwards.getTotalElements(),
+                    pageAwards.getNumber() + 1, pageAwards.getTotalPages());
+        } else {
+
+            throw new SearchResultNotFoundException("Audit Logs NotFound");
+        }
+        return searchResults;
+    }
+
+    public Specification<AuditLogs>  getSpecificationAuditDetails(String searchName,LocalDate searchStartDate,LocalDate searchEndDate) {
+
+        Specification<AuditLogs> auditSpecifications = Specification
+
+                // subsidyMeasureTitle from input parameter
+                /*.where(
+                        SearchUtils.checkNullOrEmptyString(searchName)
+                                ? null :AwardSpecificationUtils.auditUser(searchName.trim())
+
+                                );
+                // status from input parameter
+*/
+        .where(
+                SearchUtils.checkNullOrEmptyString(searchName)
+                        ? null :AwardSpecificationUtils.auditUser(searchName.trim())
+                        .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                ? null :AwardSpecificationUtils.auditGrantingAuthority(searchName.trim()))
+                        .and(searchStartDate==null || searchEndDate==null
+                                ? null :AwardSpecificationUtils.auditLogRange(searchStartDate,searchEndDate)));
+        // status from input parameter
+
+
+        return auditSpecifications;
+
+    }
+
+    private List<Sort.Order> getOrderByConditionAudits(String[] sortBy) {
+
+        List<Sort.Order> orders = new ArrayList<Sort.Order>();
+
+        if (sortBy != null && sortBy.length > 0 && sortBy[0].contains(",")) {
+            //  will sort more than 2 fields
+            // sortOrder="field, direction"
+            for (String sortOrder : sortBy) {
+                String[] _sort = sortOrder.split(",");
+                orders.add(new Sort.Order(getSortDirection(_sort[1]), _sort[0]));
+            }
+        } else {
+            //Default sort - Legal Granting Date with recent one at top
+            orders.add(new Sort.Order(getSortDirection("desc"), "createdTimestamp"));
+        }
+        return orders;
+    }
+
+
+}

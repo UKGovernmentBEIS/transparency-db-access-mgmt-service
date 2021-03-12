@@ -4,9 +4,10 @@ import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAP
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
+import com.beis.subsidy.control.accessmanagementservice.request.AuditSearchRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetailsRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
-
+import com.beis.subsidy.control.accessmanagementservice.response.AuditLogsResultsResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.GrantingAuthorityResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchResults;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchSubsidyResultsResponse;
@@ -37,6 +38,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
@@ -129,8 +132,8 @@ public class AccessManagementController {
             SearchResults searchResults = accessManagementService.findGAEncoderDashboardData(userPrincipleObj);
             return new ResponseEntity<SearchResults>(searchResults, HttpStatus.OK);
         }
-        catch(SearchResultNotFoundException notFoundException) {
-            log.error("{}:: Result not found", loggingComponentName);
+        catch(SearchResultNotFoundException nfe) {
+            log.error("{}:: Result not found", loggingComponentName,nfe);
             throw new SearchResultNotFoundException("Search Result not found");
         }
     }
@@ -209,7 +212,6 @@ public class AccessManagementController {
         AccessTokenResponse openIdTokenResponse = graphAPILoginFeignClient
                 .getAccessIdToken(environment.getProperty("tenant-id"),map);
 
-
         if (openIdTokenResponse == null) {
             throw new AccessTokenException(HttpStatus.valueOf(500),
                     "Graph Api Service Failed while bearer token generate");
@@ -217,6 +219,31 @@ public class AccessManagementController {
         return openIdTokenResponse.getAccessToken();
     }
     
-   
-   
+    
+    
+    @PostMapping(
+            value = "/auditlogs",
+            produces = APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<AuditLogsResultsResponse> retrieveAuditDetails(@RequestHeader("userPrinciple")
+             HttpHeaders userPrinciple, @Valid @RequestBody AuditSearchRequest searchInput) {
+
+        log.info("{}::  Before calling retrieveAuditDetails::{}", loggingComponentName);
+
+        //Set Default Page records
+        if(searchInput.getTotalRecordsPerPage() == 0) {
+			searchInput.setTotalRecordsPerPage(10);
+		}
+
+        LocalDate startDate=null;
+        LocalDate endDate =null;
+        if(!StringUtils.isEmpty(searchInput.getSearchStartDate()) && !StringUtils.isEmpty(searchInput.getSearchEndDate())) {
+        	 startDate =LocalDate.parse(searchInput.getSearchStartDate());
+        	 endDate =LocalDate.parse(searchInput.getSearchEndDate());
+        }
+      String userName=  SearchUtils.getUserName(objectMapper, userPrinciple);
+      AuditLogsResultsResponse searchResults = accessManagementService.findMatchingAuditLogDetails(userName,
+        		searchInput.getSearchName(),startDate,endDate, searchInput.getPageNumber(), searchInput.getTotalRecordsPerPage(), searchInput.getSortBy());
+      return new ResponseEntity<AuditLogsResultsResponse>(searchResults, HttpStatus.OK);
+    }
 }

@@ -39,7 +39,7 @@ public class EmailUtils {
 	
 public static void sendFeedBack(String feedBack,String comments,String apiKey,String template) throws NotificationClientException {
 	
-		log.info("rinside  sendFeedBack ***** email * :: " + feedBack);
+		log.info("inside  sendFeedBack ***** email * :: " + feedBack);
 		NotificationClient client = new NotificationClient(apiKey);
 		String feedBackEmail="subsidycontrol@beis.gov.uk";
 		//comments="Satisfied";

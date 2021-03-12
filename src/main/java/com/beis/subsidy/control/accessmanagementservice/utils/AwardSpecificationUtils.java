@@ -5,6 +5,8 @@ import com.beis.subsidy.control.accessmanagementservice.model.Award;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.text.MessageFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public final class AwardSpecificationUtils {
 
@@ -77,4 +79,21 @@ public final class AwardSpecificationUtils {
 		
 		return (root, query, builder) -> builder.equal(root.get("userName"), userName);
 	}
+	
+	/**
+	 * To define specification for subsidy measure title
+	 *
+	 * @param subsidyMeasureTitle - Add subsidy measure title
+	 * @return Specification<Award> - Specification for Award
+	 */
+	public static Specification<AuditLogs> auditGrantingAuthority(String gaName) {
+		
+		return (root, query, builder) -> builder.equal(root.get("gaName"), gaName);
+	}
+	
+	public static Specification<AuditLogs> auditLogRange(LocalDate fromDate, LocalDate toDate) {
+		System.out.println("inside ** date range "+fromDate +" : " + toDate);
+	    return (root, query, builder) -> builder.between(root.get("createdTimestamp"), fromDate, toDate);
+	}
+	
 }

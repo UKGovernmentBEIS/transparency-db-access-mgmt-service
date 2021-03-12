@@ -5,6 +5,7 @@ import com.beis.subsidy.control.accessmanagementservice.exception.AccessManageme
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
+import com.beis.subsidy.control.accessmanagementservice.model.AuditLogs;
 import com.beis.subsidy.control.accessmanagementservice.repository.AuditLogsRepository;
 import com.beis.subsidy.control.accessmanagementservice.request.*;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
@@ -31,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+
 import java.util.Objects;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -68,7 +70,7 @@ public class UserManagementController {
                                           @RequestBody UserRequest request) {
 
         log.info("{}::Before calling addUser", loggingComponentName);
-        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        UserPrinciple userPrincipleObj =SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         AddUserRequest reqObj = new AddUserRequest(request.isAccountEnabled(),request.getSurName(),
                 request.getDisplayName(),request.getMailNickname(),request.getUserPrincipalName(),
@@ -78,7 +80,7 @@ public class UserManagementController {
              userManagementService.createGroupForUser(access_token, roleId, response.getId());
         });
 
-        log.info("{}::end of add user",loggingComponentName);
+     SearchUtils.saveAuditLog(userPrincipleObj,"Create User",response.getId(),auditLogsRepository);
      return ResponseEntity.status(201).body(response);
     }
 
@@ -114,9 +116,15 @@ public class UserManagementController {
                                              @PathVariable("userId") String userId,@RequestBody UpdateUserRequest request) {
 
         log.info("{}::Before calling updateUser", loggingComponentName);
-        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        UserPrinciple userPrincipleObj = SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        if (StringUtils.isEmpty(userId)) {
+            log.error("{}:: userId is empty:: {}",loggingComponentName, userId);
+            throw new InvalidRequestException("userId is null or empty");
+
+        }
         String access_token = getBearerToken();
         int response =  userManagementService.updateUser(access_token,userId,request);
+        SearchUtils.saveAuditLog(userPrincipleObj,"Update User",userId,auditLogsRepository);
         return ResponseEntity.status(response).build();
     }
 
@@ -136,8 +144,9 @@ public class UserManagementController {
         }
         String access_token = getBearerToken();
         int response =  userManagementService.deleteUser(access_token,userId);
-        log.info("{}::end of deleteUser",loggingComponentName);
-        return ResponseEntity.status(204).body(response);
+        SearchUtils.saveAuditLog(userPrincipleObj,"Delete User", userId,auditLogsRepository);
+        log.info("{} :: audit entry created for deleteUser ::{}", loggingComponentName, response);
+        return ResponseEntity.status(response).build();
     }
 
     @GetMapping(
@@ -181,7 +190,7 @@ public class UserManagementController {
 
     public String getBearerToken() throws AccessTokenException {
 
-        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+      MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
         map.add("client_id", environment.getProperty("client-Id"));
         map.add("client_secret",environment.getProperty("client-secret"));
@@ -190,11 +199,11 @@ public class UserManagementController {
         AccessTokenResponse openIdTokenResponse = graphAPILoginFeignClient
                 .getAccessIdToken(environment.getProperty("tenant-id"),map);
 
-        if (openIdTokenResponse == null) {
+      if (openIdTokenResponse == null) {
             throw new AccessTokenException(HttpStatus.valueOf(500),
                     "Graph Api Service Failed while bearer token generate");
-        }
-        return openIdTokenResponse.getAccessToken();
+      }
+      return openIdTokenResponse.getAccessToken();
     }
 
     @GetMapping(
@@ -212,7 +221,6 @@ public class UserManagementController {
     
     @PostMapping(
             value = "/feedback"
-            
     )
     public ResponseEntity<Object> sendFeedBack(@RequestBody FeedbackRequest request) {
 
@@ -223,13 +231,15 @@ public class UserManagementController {
         	if("prod".equalsIgnoreCase(environment.getProperty("env"))){
         		templateId="prod_feedback_template_id";
         	}
-      			EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
+
+            log.info("{}::template Id",environment.getProperty(templateId));
+      		EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
                         environment.getProperty(templateId));
 		 } catch (NotificationClientException e) {
 			
 			log.error("error in sending feedback mail", e);
 		}
-	    
+
         return ResponseEntity.status(201).body("Success");
     }
 }

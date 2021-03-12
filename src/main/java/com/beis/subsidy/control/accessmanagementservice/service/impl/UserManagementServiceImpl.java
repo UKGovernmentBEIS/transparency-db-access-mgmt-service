@@ -156,9 +156,9 @@ public class UserManagementServiceImpl implements UserManagementService {
             response = graphAPIFeignClient.deleteUser("Bearer " + token, userId);
             log.info("{}:: After deleteUser Graph Api call {}", loggingComponentName);
 
-            if (response.status() == 204) {
+            if (response.status() == 204 || response.status() == 404) {
                 status = response.status();
-            } else{
+            } else {
                 log.error("{}:: Graph Api failed:: status code {} & unable to delete the user {}",
                         loggingComponentName,  response.status());
                 throw new AccessManagementException(HttpStatus.valueOf(response.status()),"unable to delete the user profile");
