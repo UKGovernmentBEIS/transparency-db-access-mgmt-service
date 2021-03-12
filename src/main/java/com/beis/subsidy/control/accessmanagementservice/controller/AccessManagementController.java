@@ -40,7 +40,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -232,11 +231,9 @@ public class AccessManagementController {
         log.info("{}::  Before calling retrieveAuditDetails::{}", loggingComponentName);
 
         //Set Default Page records
-
         if(searchInput.getTotalRecordsPerPage() == 0) {
 			searchInput.setTotalRecordsPerPage(10);
 		}
-
 
         LocalDate startDate=null;
         LocalDate endDate =null;
@@ -245,8 +242,8 @@ public class AccessManagementController {
         	 endDate =LocalDate.parse(searchInput.getSearchEndDate());
         }
       String userName=  SearchUtils.getUserName(objectMapper, userPrinciple);
-        AuditLogsResultsResponse searchResults = accessManagementService.findMatchingAuditLogDetails(userName,
+      AuditLogsResultsResponse searchResults = accessManagementService.findMatchingAuditLogDetails(userName,
         		searchInput.getSearchName(),startDate,endDate, searchInput.getPageNumber(), searchInput.getTotalRecordsPerPage(), searchInput.getSortBy());
-        return new ResponseEntity<AuditLogsResultsResponse>(searchResults, HttpStatus.OK);
+      return new ResponseEntity<AuditLogsResultsResponse>(searchResults, HttpStatus.OK);
     }
 }

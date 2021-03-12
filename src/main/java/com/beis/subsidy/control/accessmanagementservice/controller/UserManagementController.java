@@ -33,8 +33,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -72,7 +70,7 @@ public class UserManagementController {
                                           @RequestBody UserRequest request) {
 
         log.info("{}::Before calling addUser", loggingComponentName);
-        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        UserPrinciple userPrincipleObj =SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         AddUserRequest reqObj = new AddUserRequest(request.isAccountEnabled(),request.getSurName(),
                 request.getDisplayName(),request.getMailNickname(),request.getUserPrincipalName(),
@@ -81,18 +79,8 @@ public class UserManagementController {
         request.getGrpRoleIds().forEach(roleId -> {
              userManagementService.createGroupForUser(access_token, roleId, response.getId());
         });
-        
-        AuditLogs audit = new AuditLogs();
-       String userName= SearchUtils.getUserName(objectMapper, userPrinciple);
-       String gaName= SearchUtils.getGaName(objectMapper, userPrinciple);
-        audit.setUserName(userName);
-        audit.setEventType("create User");
-        audit.setEventId(response.getId());
-        audit.setGaName(gaName);
-        audit.setCreatedTimestamp(LocalDate.now());
-        audit.setEventMessage("User created by  "+userName);
-        auditLogsRepository.save(audit);
-        log.info("audit entry created for user "+userName);
+
+     SearchUtils.saveAuditLog(userPrincipleObj,"Create User",response.getId(),auditLogsRepository);
      return ResponseEntity.status(201).body(response);
     }
 
@@ -128,20 +116,15 @@ public class UserManagementController {
                                              @PathVariable("userId") String userId,@RequestBody UpdateUserRequest request) {
 
         log.info("{}::Before calling updateUser", loggingComponentName);
-        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        UserPrinciple userPrincipleObj = SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        if (StringUtils.isEmpty(userId)) {
+            log.error("{}:: userId is empty:: {}",loggingComponentName, userId);
+            throw new InvalidRequestException("userId is null or empty");
+
+        }
         String access_token = getBearerToken();
         int response =  userManagementService.updateUser(access_token,userId,request);
-        AuditLogs audit = new AuditLogs();
-        String userName= SearchUtils.getUserName(objectMapper, userPrinciple);
-        String gaName= SearchUtils.getGaName(objectMapper, userPrinciple);
-         audit.setUserName(userName);
-         audit.setEventType("update User");
-         audit.setEventId(userId);
-         audit.setGaName(gaName);
-         audit.setEventMessage("User updated by  "+userName);
-         audit.setCreatedTimestamp(LocalDate.now());
-         auditLogsRepository.save(audit);
-         log.info("audit entry created for updateUser "+userName);
+        SearchUtils.saveAuditLog(userPrincipleObj,"Update User",userId,auditLogsRepository);
         return ResponseEntity.status(response).build();
     }
 
@@ -161,18 +144,9 @@ public class UserManagementController {
         }
         String access_token = getBearerToken();
         int response =  userManagementService.deleteUser(access_token,userId);
-        AuditLogs audit = new AuditLogs();
-        String userName= SearchUtils.getUserName(objectMapper, userPrinciple);
-        String gaName= SearchUtils.getGaName(objectMapper, userPrinciple);
-         audit.setUserName(userName);
-         audit.setEventType("delete User");
-         audit.setEventId(userId);
-         audit.setGaName(gaName);
-         audit.setEventMessage("User deactivated by  "+userName);
-         audit.setCreatedTimestamp(LocalDate.now());
-         auditLogsRepository.save(audit);
-         log.info("audit entry created for deleteUser "+userName);
-        return ResponseEntity.status(204).body(response);
+        SearchUtils.saveAuditLog(userPrincipleObj,"Delete User", userId,auditLogsRepository);
+        log.info("{} :: audit entry created for deleteUser ::{}", loggingComponentName, response);
+        return ResponseEntity.status(response).build();
     }
 
     @GetMapping(
@@ -216,7 +190,7 @@ public class UserManagementController {
 
     public String getBearerToken() throws AccessTokenException {
 
-        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+      MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
         map.add("client_id", environment.getProperty("client-Id"));
         map.add("client_secret",environment.getProperty("client-secret"));
@@ -225,11 +199,11 @@ public class UserManagementController {
         AccessTokenResponse openIdTokenResponse = graphAPILoginFeignClient
                 .getAccessIdToken(environment.getProperty("tenant-id"),map);
 
-        if (openIdTokenResponse == null) {
+      if (openIdTokenResponse == null) {
             throw new AccessTokenException(HttpStatus.valueOf(500),
                     "Graph Api Service Failed while bearer token generate");
-        }
-        return openIdTokenResponse.getAccessToken();
+      }
+      return openIdTokenResponse.getAccessToken();
     }
 
     @GetMapping(
