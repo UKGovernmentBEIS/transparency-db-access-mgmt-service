@@ -212,7 +212,6 @@ public class UserManagementController {
     
     @PostMapping(
             value = "/feedback"
-            
     )
     public ResponseEntity<Object> sendFeedBack(@RequestBody FeedbackRequest request) {
 
@@ -223,13 +222,15 @@ public class UserManagementController {
         	if("prod".equalsIgnoreCase(environment.getProperty("env"))){
         		templateId="prod_feedback_template_id";
         	}
-      			EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
+
+            log.info("{}::template Id",environment.getProperty(templateId));
+      		EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
                         environment.getProperty(templateId));
 		 } catch (NotificationClientException e) {
 			
 			log.error("error in sending feedback mail", e);
 		}
-	    
+
         return ResponseEntity.status(201).body("Success");
     }
 }

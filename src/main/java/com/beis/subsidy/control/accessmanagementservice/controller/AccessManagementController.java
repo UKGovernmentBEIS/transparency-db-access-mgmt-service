@@ -129,8 +129,8 @@ public class AccessManagementController {
             SearchResults searchResults = accessManagementService.findGAEncoderDashboardData(userPrincipleObj);
             return new ResponseEntity<SearchResults>(searchResults, HttpStatus.OK);
         }
-        catch(SearchResultNotFoundException notFoundException) {
-            log.error("{}:: Result not found", loggingComponentName);
+        catch(SearchResultNotFoundException nfe) {
+            log.error("{}:: Result not found", loggingComponentName,nfe);
             throw new SearchResultNotFoundException("Search Result not found");
         }
     }
@@ -208,7 +208,6 @@ public class AccessManagementController {
 
         AccessTokenResponse openIdTokenResponse = graphAPILoginFeignClient
                 .getAccessIdToken(environment.getProperty("tenant-id"),map);
-
 
         if (openIdTokenResponse == null) {
             throw new AccessTokenException(HttpStatus.valueOf(500),

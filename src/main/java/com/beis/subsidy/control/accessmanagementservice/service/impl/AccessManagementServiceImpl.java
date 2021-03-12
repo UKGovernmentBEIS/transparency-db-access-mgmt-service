@@ -107,6 +107,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         SearchResults searchResults = new SearchResults();
         Long gaId = getGrantingAuthorityIdByName(userPrincipleObj.getGrantingAuthorityGroupName());
         if(gaId == null || gaId <= 0){
+            log.error("{}::Inside if method of findGAAdminDashboardData", loggingComponentName);
             throw new UnauthorisedAccessException("Invalid granting authority name");
         }
 
