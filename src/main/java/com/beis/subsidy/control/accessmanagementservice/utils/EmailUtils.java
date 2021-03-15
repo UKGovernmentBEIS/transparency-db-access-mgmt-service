@@ -39,17 +39,15 @@ public class EmailUtils {
 	
 public static void sendFeedBack(String feedBack,String comments,String apiKey,String template) throws NotificationClientException {
 	
-		log.info("inside  sendFeedBack ***** email * :: " + feedBack);
+		log.info("inside  sendFeedBack ***** email * :: ");
 		NotificationClient client = new NotificationClient(apiKey);
-		String feedBackEmail="subsidycontrol@beis.gov.uk";
-		//comments="Satisfied";
+		String feedBackEmail="prashanth.kotla@cognizant.com";
 		if(StringUtils.isEmpty(comments)) {
 			comments="N/A";
 		}
 		Map<String, Object> personalisation = new HashMap<>();
 		personalisation.put("feedback_comment", feedBack);
 		personalisation.put("comments", comments);
-		//environment.getProperty("feed_back_template");
 		log.info("before sending ***** email **8 :: " + comments);
 		SendEmailResponse response = client.sendEmail(template, feedBackEmail, personalisation, null);
 

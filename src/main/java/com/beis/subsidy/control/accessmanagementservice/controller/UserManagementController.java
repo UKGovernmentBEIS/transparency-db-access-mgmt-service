@@ -232,7 +232,9 @@ public class UserManagementController {
         		templateId="prod_feedback_template_id";
         	}
 
+            log.info("{}::env",environment.getProperty("env"));
             log.info("{}::template Id",environment.getProperty(templateId));
+            log.info("{}::apiValue",environment.getProperty("apiKey"));
       		EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
                         environment.getProperty(templateId));
 		 } catch (NotificationClientException e) {
