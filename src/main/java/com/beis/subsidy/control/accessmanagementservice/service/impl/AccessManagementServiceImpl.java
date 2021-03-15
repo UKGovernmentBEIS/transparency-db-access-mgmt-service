@@ -237,7 +237,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     }
 
     @Override
-    public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status,
+    public SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName,String status,
                              Integer page, Integer recordsPerPage, UserPrinciple userPrinciple,String[] sortBy) {
 
         Page<Award> pageAwards = null;
@@ -405,8 +405,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 .where(
                         SearchUtils.checkNullOrEmptyString(searchName)
                                 ? null :AwardSpecificationUtils.subsidyMeasureTitle(searchName.trim())
-                                .or(SearchUtils.checkNullOrEmptyString(searchName)
-                                        ? null :AwardSpecificationUtils.subsidyNumber(searchName.trim()))
+                                .or(searchName != null ?
+                                        AwardSpecificationUtils.awardByNumber(Long.valueOf(searchName)):null)
                                 .or(SearchUtils.checkNullOrEmptyString(searchName)
                                         ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
                                 .or(SearchUtils.checkNullOrEmptyString(searchName)
@@ -414,6 +414,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 // status from input parameter
                 .and(SearchUtils.checkNullOrEmptyString(status)
                         ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
+                // .and (awardNumber != null ? AwardSpecificationUtils.awardByNumber(awardNumber):null);
         return awardSpecifications;
     }
 

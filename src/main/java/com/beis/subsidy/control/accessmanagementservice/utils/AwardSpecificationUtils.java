@@ -6,7 +6,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.text.MessageFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public final class AwardSpecificationUtils {
 
@@ -81,10 +80,10 @@ public final class AwardSpecificationUtils {
 	}
 	
 	/**
-	 * To define specification for subsidy measure title
+	 * To define specification for audit logs
 	 *
-	 * @param subsidyMeasureTitle - Add subsidy measure title
-	 * @return Specification<Award> - Specification for Award
+	 * @param gaName - Add subsidy measure title
+	 * @return Specification<AuditLogs> - Specification for AuditLogs
 	 */
 	public static Specification<AuditLogs> auditGrantingAuthority(String gaName) {
 		

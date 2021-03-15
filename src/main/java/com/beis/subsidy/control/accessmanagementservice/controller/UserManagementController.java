@@ -233,8 +233,7 @@ public class UserManagementController {
 
             log.info("{}::env",environment.getProperty("env"));
             log.info("{}::template Id",environment.getProperty(templateId));
-            log.info("{}::apiValue",environment.getProperty("apiKey"));
-      		EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
+            EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
                         environment.getProperty(templateId),environment);
 		 } catch (NotificationClientException e) {
 			
