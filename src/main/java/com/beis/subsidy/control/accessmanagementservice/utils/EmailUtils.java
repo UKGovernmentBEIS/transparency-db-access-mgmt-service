@@ -41,7 +41,7 @@ public static void sendFeedBack(String feedBack,String comments,String apiKey,St
 	
 		log.info("inside  sendFeedBack ***** email * :: ");
 		NotificationClient client = new NotificationClient(apiKey);
-		String feedBackEmail="prashanth.kotla@cognizant.com";
+		String feedBackEmail=environment.getProperty("feedBackEmail");
 		if(StringUtils.isEmpty(comments)) {
 			comments="N/A";
 		}
