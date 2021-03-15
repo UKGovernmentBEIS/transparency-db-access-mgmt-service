@@ -171,7 +171,7 @@ public class UserManagementController {
                                                                @PathVariable("userId") String userId) {
 
         log.info("{}:: Before calling retrieveUserDetailsId",loggingComponentName);
-        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        SearchUtils.isRoleValid(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         log.info("{}:: After access_token in retrieveUserDetailsId",loggingComponentName);
         UserResponse response = userManagementService.getUserDetails(access_token,userId);
