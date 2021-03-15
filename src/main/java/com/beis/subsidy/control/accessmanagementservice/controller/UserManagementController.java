@@ -5,7 +5,6 @@ import com.beis.subsidy.control.accessmanagementservice.exception.AccessManageme
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
-import com.beis.subsidy.control.accessmanagementservice.model.AuditLogs;
 import com.beis.subsidy.control.accessmanagementservice.repository.AuditLogsRepository;
 import com.beis.subsidy.control.accessmanagementservice.request.*;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
@@ -172,7 +171,7 @@ public class UserManagementController {
                                                                @PathVariable("userId") String userId) {
 
         log.info("{}:: Before calling retrieveUserDetailsId",loggingComponentName);
-        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        SearchUtils.isRoleValid(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         log.info("{}:: After access_token in retrieveUserDetailsId",loggingComponentName);
         UserResponse response = userManagementService.getUserDetails(access_token,userId);
@@ -232,9 +231,10 @@ public class UserManagementController {
         		templateId="prod_feedback_template_id";
         	}
 
+            log.info("{}::env",environment.getProperty("env"));
             log.info("{}::template Id",environment.getProperty(templateId));
-      		EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
-                        environment.getProperty(templateId));
+            EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
+                        environment.getProperty(templateId),environment);
 		 } catch (NotificationClientException e) {
 			
 			log.error("error in sending feedback mail", e);
