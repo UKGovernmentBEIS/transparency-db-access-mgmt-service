@@ -5,7 +5,6 @@ import com.beis.subsidy.control.accessmanagementservice.exception.AccessManageme
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
-import com.beis.subsidy.control.accessmanagementservice.model.AuditLogs;
 import com.beis.subsidy.control.accessmanagementservice.repository.AuditLogsRepository;
 import com.beis.subsidy.control.accessmanagementservice.request.*;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
@@ -236,7 +235,7 @@ public class UserManagementController {
             log.info("{}::template Id",environment.getProperty(templateId));
             log.info("{}::apiValue",environment.getProperty("apiKey"));
       		EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
-                        environment.getProperty(templateId));
+                        environment.getProperty(templateId),environment);
 		 } catch (NotificationClientException e) {
 			
 			log.error("error in sending feedback mail", e);
