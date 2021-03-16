@@ -237,7 +237,8 @@ public class AccessManagementController {
 
         LocalDate startDate=null;
         LocalDate endDate =null;
-        if(!StringUtils.isEmpty(searchInput.getSearchStartDate()) && !StringUtils.isEmpty(searchInput.getSearchEndDate())) {
+        if(!StringUtils.isEmpty(searchInput.getSearchStartDate()) &&
+                !StringUtils.isEmpty(searchInput.getSearchEndDate())) {
         	 startDate =LocalDate.parse(searchInput.getSearchStartDate());
         	 endDate =LocalDate.parse(searchInput.getSearchEndDate());
         }

@@ -20,7 +20,6 @@ import com.beis.subsidy.control.accessmanagementservice.response.AuditLogsResult
 import com.beis.subsidy.control.accessmanagementservice.response.GrantingAuthorityResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchSubsidyResultsResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchResults;
 import com.beis.subsidy.control.accessmanagementservice.service.AccessManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
@@ -34,7 +33,6 @@ import feign.Response;
 import com.beis.subsidy.control.accessmanagementservice.utils.AccessManagementConstant;
 import com.beis.subsidy.control.accessmanagementservice.utils.SubsidyMeasureSpecificationUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.AwardSpecificationUtils;
-import com.beis.subsidy.control.accessmanagementservice.utils.EmailUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.GACreatedBySpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +46,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import uk.gov.service.notify.NotificationClientException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -458,6 +454,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         Object clazz;
         try {
             log.info("{}::before calling toGraph Api is and groupId is {}",loggingComponentName,groupId);
+
             response = graphAPIFeignClient.getUsersByGroupId("Bearer " + token,groupId);
             if (response.status() == 200) {
                 clazz = UserDetailsResponse.class;
@@ -486,7 +483,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     public AuditLogsResultsResponse findMatchingAuditLogDetails(String userName,String searchName, LocalDate searchStartDate,LocalDate searchEndDate,
                              Integer page, Integer recordsPerPage,String[] sortBy) {
 
-    	log.info("inside findMatchingAuditLogDetails ");
+    	log.info("{} :: inside findMatchingAuditLogDetails ", loggingComponentName);
         Page<AuditLogs> pageAwards = null;
         List<AuditLogs> auditResults = null;
 
@@ -496,20 +493,21 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         List<Sort.Order> orders = getOrderByConditionAudits(sortBy);
         Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage,Sort.by(orders));
 
-        log.info("speci findMatchingAuditLogDetails "+userName);
-        if(!StringUtils.isEmpty(searchName)) {
+
+        if (!StringUtils.isEmpty(searchName) || searchStartDate != null
+                || searchEndDate != null) {
+
             pageAwards = auditLogsRepository.findAll(auditSpecifications,pagingSortAwards);
-            auditResults = pageAwards.getContent();
         } else {
 
         	pageAwards = auditLogsRepository.findByUserName(userName,  pagingSortAwards);
-        	 auditResults = pageAwards.getContent();
         }
+
+        auditResults = pageAwards.getContent();
         AuditLogsResultsResponse searchResults = null;
 
-        log.info("speci findMatchingAuditLogDetails ");
         if (!auditResults.isEmpty()) {
-        	 log.info("auditResults IS NOT EMPTY ");
+        	 log.info("{} :: auditResults were not empty",loggingComponentName);
             searchResults = new AuditLogsResultsResponse(auditResults, pageAwards.getTotalElements(),
                     pageAwards.getNumber() + 1, pageAwards.getTotalPages());
         } else {
@@ -523,24 +521,13 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
         Specification<AuditLogs> auditSpecifications = Specification
 
-                // subsidyMeasureTitle from input parameter
-                /*.where(
-                        SearchUtils.checkNullOrEmptyString(searchName)
-                                ? null :AwardSpecificationUtils.auditUser(searchName.trim())
-
-                                );
-                // status from input parameter
-*/
         .where(
                 SearchUtils.checkNullOrEmptyString(searchName)
                         ? null :AwardSpecificationUtils.auditUser(searchName.trim())
                         .or(SearchUtils.checkNullOrEmptyString(searchName)
-                                ? null :AwardSpecificationUtils.auditGrantingAuthority(searchName.trim()))
-                        .and(searchStartDate==null || searchEndDate==null
-                                ? null :AwardSpecificationUtils.auditLogRange(searchStartDate,searchEndDate)));
-        // status from input parameter
-
-
+                                ? null :AwardSpecificationUtils.auditGrantingAuthority(searchName.trim())))
+        .and((searchStartDate==null || searchEndDate==null)
+                                ? null :AwardSpecificationUtils.auditLogRange(searchStartDate,searchEndDate));
         return auditSpecifications;
 
     }
