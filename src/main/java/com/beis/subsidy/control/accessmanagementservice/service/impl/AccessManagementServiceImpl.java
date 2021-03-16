@@ -401,7 +401,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 .where(
                         SearchUtils.checkNullOrEmptyString(searchName)
                                 ? null :AwardSpecificationUtils.subsidyMeasureTitle(searchName.trim())
-                                .or(searchName != null ?
+                                .or(searchName != null && searchName.matches("[0-9]+") ?
                                         AwardSpecificationUtils.awardByNumber(Long.valueOf(searchName)):null)
                                 .or(SearchUtils.checkNullOrEmptyString(searchName)
                                         ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
