@@ -82,7 +82,7 @@ public final class AwardSpecificationUtils {
 	/**
 	 * To define specification for audit logs
 	 *
-	 * @param gaName - Add subsidy measure title
+	 * @param gaName - search by ga name
 	 * @return Specification<AuditLogs> - Specification for AuditLogs
 	 */
 	public static Specification<AuditLogs> auditGrantingAuthority(String gaName) {
@@ -91,7 +91,7 @@ public final class AwardSpecificationUtils {
 	}
 	
 	public static Specification<AuditLogs> auditLogRange(LocalDate fromDate, LocalDate toDate) {
-		System.out.println("inside ** date range "+fromDate +" : " + toDate);
+
 	    return (root, query, builder) -> builder.between(root.get("createdTimestamp"), fromDate, toDate);
 	}
 	
