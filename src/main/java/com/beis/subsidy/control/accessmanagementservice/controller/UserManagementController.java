@@ -227,11 +227,7 @@ public class UserManagementController {
         
         String templateId="feedback_template_id";
         try {
-        	if("prod".equalsIgnoreCase(environment.getProperty("env"))){
-        		templateId="prod_feedback_template_id";
-        	}
 
-            log.info("{}::env",environment.getProperty("env"));
             log.info("{}::template Id",environment.getProperty(templateId));
             EmailUtils.sendFeedBack(request.getFeedBack(),request.getComments(),environment.getProperty("apiKey"),
                         environment.getProperty(templateId),environment);
