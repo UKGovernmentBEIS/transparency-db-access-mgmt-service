@@ -91,7 +91,7 @@ public class UserManagementController {
                                                      @RequestBody UserInvitationRequest request) {
 
         log.info("{}::Before calling sendUserInvitation", loggingComponentName);
-        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        UserPrinciple userPrincipleObj = SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         InvitationRequest invitationRequest = new InvitationRequest(request.getInvitedUserEmailAddress(), request.getInviteRedirectUrl(),request.isSendInvitationMessage());
         //get the user id in the response once user created successfully in the Azure Active directory
@@ -104,6 +104,7 @@ public class UserManagementController {
         request.getGrpRoleIds().forEach(roleId -> {
             userManagementService.createGroupForUser(access_token, roleId, response.getInvitedUser().getId());
         });
+        SearchUtils.saveAuditLog(userPrincipleObj,"Create User",response.getId(),auditLogsRepository);
         return ResponseEntity.status(201).body(response);
     }
 

@@ -4,6 +4,7 @@ import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAP
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
+import com.beis.subsidy.control.accessmanagementservice.repository.AuditLogsRepository;
 import com.beis.subsidy.control.accessmanagementservice.request.AuditSearchRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetailsRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
@@ -61,6 +62,9 @@ public class AccessManagementController {
 
     @Autowired
     GraphAPILoginFeignClient graphAPILoginFeignClient;
+
+    @Autowired
+    AuditLogsRepository auditLogsRepository;
 
     static final String BEARER = "Bearer ";
 
@@ -166,13 +170,23 @@ public class AccessManagementController {
                                                      @Valid @RequestBody UpdateAwardDetailsRequest awardUpdateRequest,
                                                      @PathVariable("awardNumber") Long awardNumber) {
 
-         log.info("{}:: Before calling updateSubsidyAward", loggingComponentName);
+        log.info("{}:: Before calling updateSubsidyAward", loggingComponentName);
         UserPrinciple userPrincipleResp = SearchUtils.validateAdminGAApproverRoleFromUpObj(objectMapper,userPrinciple);
          if (StringUtils.isEmpty(awardNumber) || Objects.isNull(awardUpdateRequest)) {
               throw new InvalidRequestException("Bad Request AwardId is null or requestBody is null");
          }
          String accessToken= getBearerToken();
-        return accessManagementService.updateAwardDetailsByAwardId(awardNumber, awardUpdateRequest,accessToken);
+
+        ResponseEntity<Object> objectResponseEntity =  accessManagementService.updateAwardDetailsByAwardId(awardNumber,
+                awardUpdateRequest,accessToken);
+        //Audit entry
+        StringBuilder eventMsg = new StringBuilder(awardNumber.toString()).append(" Award status ")
+                .append(" updated to ")
+                .append(awardUpdateRequest.getStatus())
+                .append(" By ").append(userPrincipleResp.getUserName());
+        SearchUtils.saveAuditLogForUpdate(userPrincipleResp,"Update Award", awardNumber.toString(),
+                eventMsg.toString(),auditLogsRepository);
+        return objectResponseEntity;
     }
 
     @GetMapping(
@@ -203,7 +217,7 @@ public class AccessManagementController {
 
     public String getBearerToken() throws AccessTokenException {
 
-        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+       MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
         map.add("client_id", environment.getProperty("client-Id"));
         map.add("client_secret",environment.getProperty("client-secret"));

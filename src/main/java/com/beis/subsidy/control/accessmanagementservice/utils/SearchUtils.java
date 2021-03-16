@@ -11,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -232,6 +231,23 @@ public class SearchUtils {
 			log.error("{} :: saveAuditLog failed to perform action", e);
 		}
 
+	}
+
+	public static void saveAuditLogForUpdate(UserPrinciple userPrinciple, String action,String awardNo, String eventMsg,
+											 AuditLogsRepository auditLogsRepository) {
+		AuditLogs audit = new AuditLogs();
+		try {
+			String userName = userPrinciple.getUserName();
+			audit.setUserName(userName);
+			audit.setEventType(action);
+			audit.setEventId(awardNo);
+			audit.setEventMessage(eventMsg.toString());
+			audit.setGaName(userPrinciple.getGrantingAuthorityGroupName());
+			audit.setCreatedTimestamp(LocalDate.now());
+			auditLogsRepository.save(audit);
+		} catch(Exception e) {
+			log.error("{} :: saveAuditLogForUpdate failed to perform action", e);
+		}
 	}
 
 }
