@@ -124,7 +124,6 @@ public class UserManagementController {
         }
         String access_token = getBearerToken();
         int response =  userManagementService.updateUser(access_token,userId,request);
-        SearchUtils.saveAuditLog(userPrincipleObj,"Update User",userId,auditLogsRepository);
         return ResponseEntity.status(response).build();
     }
 

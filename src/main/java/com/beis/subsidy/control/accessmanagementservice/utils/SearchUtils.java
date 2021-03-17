@@ -223,7 +223,7 @@ public class SearchUtils {
 			audit.setUserName(userName);
 			audit.setEventType(action);
 			audit.setEventId(userId);
-			audit.setEventMessage("User deactivated by  " + userName);
+			audit.setEventMessage("User created by  " + userName);
 			audit.setGaName(userPrinciple.getGrantingAuthorityGroupName());
 			audit.setCreatedTimestamp(LocalDate.now());
 			auditLogsRepository.save(audit);

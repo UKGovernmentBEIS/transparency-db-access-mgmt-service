@@ -29,7 +29,9 @@ public final class AwardSpecificationUtils {
 	 * @return Specification<Award> - Specification for Award
 	 */
 	public static Specification<Award> subsidyMeasureTitle(String subsidyMeasureTitle) {
-		return (root, query, builder) -> builder.like(root.get("subsidyMeasure").get("subsidyMeasureTitle"), contains(subsidyMeasureTitle));
+
+		return (root, query, builder) -> builder.like(builder.lower(root.get("subsidyMeasure").get("subsidyMeasureTitle")),
+				builder.lower(builder.literal("%" + subsidyMeasureTitle.trim() + "%")));
 	}
 
 	/**
@@ -54,8 +56,8 @@ public final class AwardSpecificationUtils {
 
 	public static Specification<Award> grantingAuthorityName(String searchName) {
 
-		return (root, query, builder) -> builder.like(root.get("grantingAuthority").get("grantingAuthorityName"),
-				contains(searchName));
+		return (root, query, builder) -> builder.like(builder.lower(root.get("grantingAuthority").get("grantingAuthorityName")),
+				builder.lower(builder.literal("%" + searchName.trim() + "%")));
 	}
 
 	public static Specification<Award> beneficiaryName(String beneficiaryName) {

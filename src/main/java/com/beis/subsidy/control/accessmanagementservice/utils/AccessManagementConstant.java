@@ -1,6 +1,7 @@
 package com.beis.subsidy.control.accessmanagementservice.utils;
 
 public class AccessManagementConstant {
+    public static final String AWARD_DELETED = "Deleted";
     public static String BEIS_ADMIN_ROLE="BEIS Administrator";
     public static String ADMIN_ROLES[]= {"BEIS Administrator","Granting Authority Administrator"};
     public static String All_ROLES[]= {"BEIS Administrator","Granting Authority Administrator",

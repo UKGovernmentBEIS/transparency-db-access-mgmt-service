@@ -320,7 +320,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         int totalAwaitingAward = 0;
         int totalPublishedAward = 0;
         int totalRejectedAward = 0;
-        int totalInactiveAward = 0;
+        int totalDeleteAward = 0;
         if(awardList != null && awardList.size() >0){
             totalSubsidyAward = awardList.size();
             for(Award award : awardList){
@@ -330,8 +330,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                     totalPublishedAward++;
                 } else if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_REJECTED)){
                     totalRejectedAward++;
-                } else if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_INACTIVE)){
-                    totalInactiveAward++;
+                } else if(award.getStatus().equalsIgnoreCase(AccessManagementConstant.AWARD_DELETED)){
+                    totalDeleteAward++;
                 }
             }
         }
@@ -339,7 +339,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         awardUserActivityCount.put("totalSubsidyAward",totalSubsidyAward);
         awardUserActivityCount.put("totalAwaitingAward",totalAwaitingAward);
         awardUserActivityCount.put("totalRejectedAward",totalRejectedAward);
-        awardUserActivityCount.put("totalInactiveAward",totalInactiveAward);
+        awardUserActivityCount.put("totalDeleteAward",totalDeleteAward);
         awardUserActivityCount.put("totalPublishedAward",totalPublishedAward);
         return awardUserActivityCount;
     }
