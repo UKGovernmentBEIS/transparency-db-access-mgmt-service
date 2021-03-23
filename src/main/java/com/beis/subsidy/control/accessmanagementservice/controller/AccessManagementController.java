@@ -137,7 +137,7 @@ public class AccessManagementController {
             return new ResponseEntity<SearchResults>(searchResults, HttpStatus.OK);
         }
         catch(SearchResultNotFoundException nfe) {
-            log.error("{}:: Result not found", loggingComponentName,nfe);
+            log.error("{}:: Result not found {}", loggingComponentName,nfe);
             throw new SearchResultNotFoundException("Search Result not found");
         }
     }
@@ -186,6 +186,8 @@ public class AccessManagementController {
                 .append(" By ").append(userPrincipleResp.getUserName());
         SearchUtils.saveAuditLogForUpdate(userPrincipleResp,"Update Award", awardNumber.toString(),
                 eventMsg.toString(),auditLogsRepository);
+
+
         return objectResponseEntity;
     }
 
@@ -217,7 +219,7 @@ public class AccessManagementController {
 
     public String getBearerToken() throws AccessTokenException {
 
-       MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
         map.add("client_id", environment.getProperty("client-Id"));
         map.add("client_secret",environment.getProperty("client-secret"));
