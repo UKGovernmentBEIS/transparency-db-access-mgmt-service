@@ -156,7 +156,7 @@ public class UserManagementController {
                                                                @PathVariable("groupId") String groupId) {
 
         log.info("{}:: Before calling retrieveUserDetailsByGroupId",loggingComponentName);
-        SearchUtils.validateAdminGAApproverRoleFromUpObj(objectMapper,userPrinciple);
+        SearchUtils.isRoleValid(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         log.info("{}:: After access_token in retrieveUserDetailsByGroupId",loggingComponentName);
         UserDetailsResponse response =  userManagementService.getUserRolesByGrpId(access_token,groupId);
