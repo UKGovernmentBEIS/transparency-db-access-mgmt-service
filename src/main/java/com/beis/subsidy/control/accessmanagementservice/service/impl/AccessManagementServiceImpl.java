@@ -111,10 +111,13 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         List<Award> allAwardList = awardRepository.findAll(getAwardSpecification(gaId));
         Map<String, Integer> awardUserActionCount = adminAwardCounts(allAwardList);
         addAwardToSearchResult(awardUserActionCount, searchResults);
-
+        log.info("{}::Inside method of findGAAdminDashboardData and allAwardList size {}::", loggingComponentName,
+                allAwardList.size());
         List<SubsidyMeasure> allSubObjList = subsidyMeasureRepository.findAll(subsidyMeasureByGrantingAuthority(gaId));
         Map<String, Integer> subObjUserActionCount = subsidyMeasureCounts(userPrincipleObj, allSubObjList);
         addSubsidiesToSearchResults(searchResults, subObjUserActionCount);
+        log.info("{}::Inside method of findGAAdminDashboardData and allSubObjList size {}::", loggingComponentName,
+                allSubObjList.size());
         return searchResults;
     }
     @Override
@@ -496,10 +499,10 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
         if (!StringUtils.isEmpty(searchName) || searchStartDate != null
                 || searchEndDate != null) {
-
+            log.info("{} :: inside if ", loggingComponentName);
             pageAwards = auditLogsRepository.findAll(auditSpecifications,pagingSortAwards);
         } else {
-
+            log.info("{} :: inside else if ", loggingComponentName);
         	pageAwards = auditLogsRepository.findByUserName(userName,  pagingSortAwards);
         }
 

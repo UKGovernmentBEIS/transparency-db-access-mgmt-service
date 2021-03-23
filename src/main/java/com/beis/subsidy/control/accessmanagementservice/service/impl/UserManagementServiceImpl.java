@@ -57,7 +57,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         Object clazz;
         try {
             long time1 = System.currentTimeMillis();
-            log.info("{}::before calling toGraph Api is",loggingComponentName);
+            log.info("{}::before calling toGraph Api  and group id is {}::",loggingComponentName,groupId);
             response = graphAPIFeignClient.getUsersByGroupId("Bearer " + token,groupId);
             log.info("{}:: Time taken to call Graph Api is {}", loggingComponentName, (System.currentTimeMillis() - time1));
 

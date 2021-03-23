@@ -137,7 +137,7 @@ public class AccessManagementController {
             return new ResponseEntity<SearchResults>(searchResults, HttpStatus.OK);
         }
         catch(SearchResultNotFoundException nfe) {
-            log.error("{}:: Result not found", loggingComponentName,nfe);
+            log.error("{}:: Result not found {}::", loggingComponentName,nfe);
             throw new SearchResultNotFoundException("Search Result not found");
         }
     }
