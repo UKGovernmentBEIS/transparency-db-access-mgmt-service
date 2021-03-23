@@ -42,7 +42,7 @@ public class ExceptionMapper extends ResponseEntityExceptionHandler {
                 request.getDescription(false));
 
         log.error("Exception message = " + ex.getMessage() + " Cause = " + ex.getCause() + " Supressed = " + ex.getSuppressed());
-        log.error("Exception Stack-trace = " + ex.getStackTrace());
+        log.error("Exception Stack-trace = ", ex);
 
         return new ResponseEntity(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

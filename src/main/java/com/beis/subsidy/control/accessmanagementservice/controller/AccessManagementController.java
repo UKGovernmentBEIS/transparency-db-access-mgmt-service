@@ -133,6 +133,8 @@ public class AccessManagementController {
         UserPrinciple userPrincipleObj = SearchUtils.validateRoleFromUserPrincipleObject(objectMapper,userPrinciple,
                 AccessManagementConstant.GA_ENCODER_ROLE);
         try{
+            log.info("{}:: Inside try of findGaEncoderDashboardData method and UPO object {} ::", loggingComponentName, userPrincipleObj);
+
             SearchResults searchResults = accessManagementService.findGAEncoderDashboardData(userPrincipleObj);
             return new ResponseEntity<SearchResults>(searchResults, HttpStatus.OK);
         }
@@ -242,7 +244,7 @@ public class AccessManagementController {
     public ResponseEntity<AuditLogsResultsResponse> retrieveAuditDetails(@RequestHeader("userPrinciple")
              HttpHeaders userPrinciple, @Valid @RequestBody AuditSearchRequest searchInput) {
 
-        log.info("{}::  Before calling retrieveAuditDetails::{}", loggingComponentName);
+        log.info("{}::  Before calling retrieveAuditDetails", loggingComponentName);
 
         //Set Default Page records
         if(searchInput.getTotalRecordsPerPage() == 0) {

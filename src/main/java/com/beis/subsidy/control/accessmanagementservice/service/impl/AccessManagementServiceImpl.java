@@ -101,6 +101,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
     @Override
     public SearchResults findGAAdminDashboardData(UserPrinciple userPrincipleObj) {
+        log.error("{}::Inside method of findGAAdminDashboardData", loggingComponentName);
         SearchResults searchResults = new SearchResults();
         Long gaId = getGrantingAuthorityIdByName(userPrincipleObj.getGrantingAuthorityGroupName());
         if(gaId == null || gaId <= 0){
@@ -502,7 +503,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             log.info("{} :: inside if ", loggingComponentName);
             pageAwards = auditLogsRepository.findAll(auditSpecifications,pagingSortAwards);
         } else {
-            log.info("{} :: inside else if ", loggingComponentName);
+            log.info("{} :: inside else if user name {} ::", loggingComponentName, userName);
         	pageAwards = auditLogsRepository.findByUserName(userName,  pagingSortAwards);
         }
 
