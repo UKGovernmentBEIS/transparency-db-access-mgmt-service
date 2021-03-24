@@ -243,6 +243,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
         Page<Award> pageAwards = null;
         List<Award> awardResults = null;
+        List<Award> awards = null;
         Specification<Award> awardSpecifications = getSpecificationAwardDetails(searchName, status);
 
         List<Sort.Order> orders = getOrderByCondition(sortBy);
@@ -251,25 +252,36 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         if (AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrinciple.getRole().trim())) {
             pageAwards = awardRepository.findAll(awardSpecifications, pagingSortAwards);
             awardResults = pageAwards.getContent();
+            awards = awardRepository.findAll();
 
         } else {
-            Long gaId = getGrantingAuthorityIdByName(userPrinciple.getGrantingAuthorityGroupName());
-            if(gaId == null || gaId <= 0){
-                throw new UnauthorisedAccessException("Invalid granting authority name");
-            }
 
-            if(!StringUtils.isEmpty(searchName) || !StringUtils.isEmpty(status)) {
-                pageAwards = awardRepository.findAll(awardSpecifications,pagingSortAwards);
+            if(!StringUtils.isEmpty(searchName) || !StringUtils.isEmpty(status))  {
+
+                Specification<Award> awardSpecificationsForGaRoles = getSpecificationAwardDetailsByGaRoles(searchName,
+                        status,userPrinciple.getGrantingAuthorityGroupName());
+                pageAwards = awardRepository.findAll(awardSpecificationsForGaRoles,pagingSortAwards);
                 awardResults = pageAwards.getContent();
+                awards =  awardRepository.findAll(awardSpecificationsForGaRoles);
+
             } else {
+
+                Long gaId = getGrantingAuthorityIdByName(userPrinciple.getGrantingAuthorityGroupName());
+                if(gaId == null || gaId <= 0){
+                    throw new UnauthorisedAccessException("Invalid granting authority name");
+                }
                 pageAwards = awardRepository.findAll(getAwardSpecification(gaId),pagingSortAwards);
                 awardResults = pageAwards.getContent();
+                awards =  awardRepository.findAll(getAwardSpecification(gaId));
+
             }
         }
+
+
         SearchSubsidyResultsResponse searchResults = null;
 
         if (!awardResults.isEmpty()) {
-            List<Award> awards = awardRepository.findAll();
+            //List<Award> awards = awardRepository.findAll();
             searchResults = new SearchSubsidyResultsResponse(awardResults, pageAwards.getTotalElements(),
                     pageAwards.getNumber() + 1, pageAwards.getTotalPages(),adminAwardCounts(awards));
         } else {
@@ -416,6 +428,27 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 .and(SearchUtils.checkNullOrEmptyString(status)
                         ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
                 // .and (awardNumber != null ? AwardSpecificationUtils.awardByNumber(awardNumber):null);
+        return awardSpecifications;
+    }
+
+    private Specification<Award> getSpecificationAwardDetailsByGaRoles(String searchName, String status, String gaName) {
+
+        Specification<Award> awardSpecifications = Specification
+
+                // subsidyMeasureTitle from input parameter
+                .where(
+                        SearchUtils.checkNullOrEmptyString(searchName)
+                                ? null :AwardSpecificationUtils.subsidyMeasureTitle(searchName.trim())
+                                .or(searchName != null && searchName.matches("[0-9]+") ?
+                                        AwardSpecificationUtils.awardByNumber(Long.valueOf(searchName)):null)
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim())))
+                .and(SearchUtils.checkNullOrEmptyString(gaName) ? null :
+                        AwardSpecificationUtils.grantingAuthorityName(gaName.trim()))
+                .and(SearchUtils.checkNullOrEmptyString(status)
+                        ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
         return awardSpecifications;
     }
 
