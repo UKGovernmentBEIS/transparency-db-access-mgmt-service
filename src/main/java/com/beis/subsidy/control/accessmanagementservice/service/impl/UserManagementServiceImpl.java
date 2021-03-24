@@ -57,7 +57,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         Object clazz;
         try {
             long time1 = System.currentTimeMillis();
-            log.info("{}::before calling toGraph Api  and group id is {}::",loggingComponentName,groupId);
+            log.info("{}::before calling to getUsersByGroupId  Graph Api",loggingComponentName);
             response = graphAPIFeignClient.getUsersByGroupId("Bearer " + token,groupId);
             log.info("{}:: Time taken to call Graph Api is {}", loggingComponentName, (System.currentTimeMillis() - time1));
 
@@ -73,7 +73,7 @@ public class UserManagementServiceImpl implements UserManagementService {
             } else if (response.status() == 404) {
                 throw new SearchResultNotFoundException("Group Id not found");
             } else {
-                log.error("get user details by groupId Graph Api is failed ::{}",response.status());
+                log.error("{} ::get user details by groupId Graph Api is failed ::{}",loggingComponentName,response.status());
                 throw new AccessManagementException(HttpStatus.valueOf(response.status()),
                         "Graph Api failed");
             }

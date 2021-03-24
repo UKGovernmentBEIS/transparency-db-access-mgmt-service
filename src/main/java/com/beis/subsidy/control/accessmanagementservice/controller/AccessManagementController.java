@@ -128,12 +128,13 @@ public class AccessManagementController {
 
     @GetMapping("/gaencoder")
     public ResponseEntity<SearchResults> findGaEncoderDashboardData(@RequestHeader("userPrinciple") HttpHeaders userPrinciple){
+
         log.info("{}::Controller : Inside findGaEncoderDashboardData method", loggingComponentName);
 
         UserPrinciple userPrincipleObj = SearchUtils.validateRoleFromUserPrincipleObject(objectMapper,userPrinciple,
                 AccessManagementConstant.GA_ENCODER_ROLE);
         try{
-            log.info("{}:: Inside try of findGaEncoderDashboardData method and UPO object {} ::", loggingComponentName, userPrincipleObj);
+            log.info("{}:: Inside try of findGaEncoderDashboardData method", loggingComponentName);
 
             SearchResults searchResults = accessManagementService.findGAEncoderDashboardData(userPrincipleObj);
             return new ResponseEntity<SearchResults>(searchResults, HttpStatus.OK);

@@ -164,7 +164,6 @@ public class SearchUtils {
 		UserPrinciple userPrincipleObj = null;
 
 		try {
-			log.info("user principle object ::{}", userPrinciple.get("userPrinciple"));
 			String userPrincipleStr = userPrinciple.get("userPrinciple").get(0);
 
 			userPrincipleObj = objectMapper.readValue(userPrincipleStr, UserPrinciple.class);
