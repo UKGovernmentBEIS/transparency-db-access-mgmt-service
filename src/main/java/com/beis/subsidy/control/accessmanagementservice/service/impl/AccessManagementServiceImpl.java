@@ -252,7 +252,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         if (AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrinciple.getRole().trim())) {
             pageAwards = awardRepository.findAll(awardSpecifications, pagingSortAwards);
             awardResults = pageAwards.getContent();
-            awards = awardRepository.findAll();
+            awards = awardRepository.findAll(awardSpecifications);
 
         } else {
 
