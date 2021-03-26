@@ -172,13 +172,14 @@ public class AccessManagementController {
 
         log.info("{}:: Before calling updateSubsidyAward", loggingComponentName);
         UserPrinciple userPrincipleResp = SearchUtils.validateAdminGAApproverRoleFromUpObj(objectMapper,userPrinciple);
-         if (StringUtils.isEmpty(awardNumber) || Objects.isNull(awardUpdateRequest)) {
-              throw new InvalidRequestException("Bad Request AwardId is null or requestBody is null");
+         if (StringUtils.isEmpty(awardNumber) || Objects.isNull(awardUpdateRequest)
+                || StringUtils.isEmpty(userPrincipleResp.getUserName())) {
+              throw new InvalidRequestException("Bad Request AwardId is null or requestBody is null or username null");
          }
          String accessToken= getBearerToken();
 
         ResponseEntity<Object> objectResponseEntity =  accessManagementService.updateAwardDetailsByAwardId(awardNumber,
-                awardUpdateRequest,accessToken);
+                userPrincipleResp.getUserName(),awardUpdateRequest,accessToken);
         //Audit entry
         StringBuilder eventMsg = new StringBuilder(awardNumber.toString()).append(" Award status ")
                 .append(" updated to ")

@@ -14,18 +14,21 @@ import uk.gov.service.notify.SendEmailResponse;
 @Slf4j
 public class EmailUtils {
 
-	public static void sendEmail(String emailId, String status,Environment environment) throws NotificationClientException {
+	public static void sendAwardNotificationEmail(String emailId, String status,Long awardNumber,
+						 String approverName,Environment environment) throws NotificationClientException {
 
 		String templateId = "";
 		NotificationClient client = new NotificationClient(environment.getProperty("apiKey"));
+		Map<String, Object> personalisation = new HashMap<>();
+		personalisation.put("award_number", awardNumber);
+		personalisation.put("approver_name", approverName);
 		if (status.equals("Published")) {
 			templateId = environment.getProperty("award_approved_template");
 		} else if(status.equals("Rejected")) {
 			templateId = environment.getProperty("award_reject_template");
 		}
-		SendEmailResponse response = client.sendEmail(templateId, emailId, null, null);
-
-		log.info("response :: " + response.getBody());
+		SendEmailResponse response = client.sendEmail(templateId, emailId, personalisation, null);
+		log.info("Email notification sent :: ");
 	}
 
 

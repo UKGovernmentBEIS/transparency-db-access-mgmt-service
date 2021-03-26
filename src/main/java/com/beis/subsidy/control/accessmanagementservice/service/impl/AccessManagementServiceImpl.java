@@ -51,6 +51,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 public class AccessManagementServiceImpl implements AccessManagementService {
+
     @Autowired
     private GrantingAuthorityRepository grantingAuthorityRepository;
 
@@ -60,6 +61,9 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     @Autowired
     private SubsidyMeasureRepository subsidyMeasureRepository;
 
+    @Autowired
+    private UserManagementServiceImpl userManagementService;
+
     @Value("${loggingComponentName}")
     private String loggingComponentName;
     
@@ -68,7 +72,6 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
     @Autowired
     private ObjectMapper objectMapper;
-
 
     @Autowired
     GraphAPIFeignClient graphAPIFeignClient;
@@ -159,7 +162,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     }
 
     @Override
-    public ResponseEntity<Object> updateAwardDetailsByAwardId(Long awardId, UpdateAwardDetailsRequest awardUpdateRequest,String accessToken) {
+    public ResponseEntity<Object> updateAwardDetailsByAwardId(Long awardId,String approverName, UpdateAwardDetailsRequest awardUpdateRequest
+            ,String accessToken) {
         Award award = awardRepository.findByAwardNumber(awardId);
         if (Objects.isNull(award)) {
 
@@ -216,17 +220,19 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         awardRepository.save(award);
 
         //notification call START here
-        UserDetailsResponse userDetailsResponse =getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
-        List<UserResponse> users= userDetailsResponse.getUserProfiles();
+        UserDetailsResponse response =  userManagementService.getUserRolesByGrpId(accessToken,grantingAuthority.getAzureGroupId());
+        List<UserResponse> users= response.getUserProfiles();
 
         for (UserResponse userResponse : users) {
-              if (userResponse.getRoleName().equalsIgnoreCase(AccessManagementConstant.GA_ENCODER_ROLE) ||
-                      userResponse.getRoleName().equalsIgnoreCase(AccessManagementConstant.GA_APPROVER_ROLE)) {
+              if (!StringUtils.isEmpty(userResponse.getRoleName()) &&
+                      userResponse.getRoleName().contains("GrantingAuthorityEncoders") ||
+                      userResponse.getRoleName().contains("GrantingAuthorityApprovers")) {
                   try {
                       log.info("{}::email sending to",loggingComponentName);
-                      EmailUtils.sendEmail(userResponse.getMail(),awardUpdateRequest.getStatus(),environment);
+                      EmailUtils.sendAwardNotificationEmail(userResponse.getMail(),awardUpdateRequest.getStatus(),awardId,
+                              approverName,environment);
                   } catch (NotificationClientException e) {
-                      log.error("error in sending feedback mail", e);
+                      log.error("{} :: error in sending feedback mail", loggingComponentName,e);
                   }
               }
 
