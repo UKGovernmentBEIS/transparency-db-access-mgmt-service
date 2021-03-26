@@ -14,26 +14,26 @@ import uk.gov.service.notify.SendEmailResponse;
 @Slf4j
 public class EmailUtils {
 
-	public static void sendEmail(String emailId, Environment environment) throws NotificationClientException {
+	public static void sendAwardNotificationEmail(String emailId, String status,Long awardNumber,
+						 String approverName,Environment environment) throws NotificationClientException {
+
+		String templateId = "";
 		NotificationClient client = new NotificationClient(environment.getProperty("apiKey"));
-		SendEmailResponse response = client.sendEmail(environment.getProperty("templateId"), emailId, null, null);
-
-		log.info("response :: " + response.getBody());
-	}
-
-	public static void sendEmail(String emailId, String passWord, Environment environment) throws NotificationClientException {
-
 		Map<String, Object> personalisation = new HashMap<>();
-		personalisation.put("default_pass", passWord);
-
-		NotificationClient client = new NotificationClient(environment.getProperty("apiKey"));
-		SendEmailResponse response = client.sendEmail(environment.getProperty("new-user-mail-template"), emailId,
-				personalisation, null);
-
-		log.info("response :: " + response.getBody());
+		personalisation.put("award_number", awardNumber);
+		personalisation.put("approver_name", approverName);
+		if (status.equals("Published")) {
+			templateId = environment.getProperty("award_approved_template");
+		} else if(status.equals("Rejected")) {
+			templateId = environment.getProperty("award_reject_template");
+		}
+		SendEmailResponse response = client.sendEmail(templateId, emailId, personalisation, null);
+		log.info("Email notification sent :: ");
 	}
+
+
 	
-public static void sendFeedBack(String feedBack,String comments,String apiKey,String template, Environment environment) throws NotificationClientException {
+	public static void sendFeedBack(String feedBack,String comments,String apiKey,String template, Environment environment) throws NotificationClientException {
 	
 		log.info("inside  sendFeedBack ***** email * :: ");
 		NotificationClient client = new NotificationClient(apiKey);

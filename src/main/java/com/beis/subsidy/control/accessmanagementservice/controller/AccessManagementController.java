@@ -128,19 +128,16 @@ public class AccessManagementController {
 
     @GetMapping("/gaencoder")
     public ResponseEntity<SearchResults> findGaEncoderDashboardData(@RequestHeader("userPrinciple") HttpHeaders userPrinciple){
-
         log.info("{}::Controller : Inside findGaEncoderDashboardData method", loggingComponentName);
 
         UserPrinciple userPrincipleObj = SearchUtils.validateRoleFromUserPrincipleObject(objectMapper,userPrinciple,
                 AccessManagementConstant.GA_ENCODER_ROLE);
         try{
-            log.info("{}:: Inside try of findGaEncoderDashboardData method", loggingComponentName);
-
             SearchResults searchResults = accessManagementService.findGAEncoderDashboardData(userPrincipleObj);
             return new ResponseEntity<SearchResults>(searchResults, HttpStatus.OK);
         }
         catch(SearchResultNotFoundException nfe) {
-            log.error("{}:: Result not found {}::", loggingComponentName,nfe);
+            log.error("{}:: Result not found {}", loggingComponentName,nfe);
             throw new SearchResultNotFoundException("Search Result not found");
         }
     }
@@ -175,13 +172,14 @@ public class AccessManagementController {
 
         log.info("{}:: Before calling updateSubsidyAward", loggingComponentName);
         UserPrinciple userPrincipleResp = SearchUtils.validateAdminGAApproverRoleFromUpObj(objectMapper,userPrinciple);
-         if (StringUtils.isEmpty(awardNumber) || Objects.isNull(awardUpdateRequest)) {
-              throw new InvalidRequestException("Bad Request AwardId is null or requestBody is null");
+         if (StringUtils.isEmpty(awardNumber) || Objects.isNull(awardUpdateRequest)
+                || StringUtils.isEmpty(userPrincipleResp.getUserName())) {
+              throw new InvalidRequestException("Bad Request AwardId is null or requestBody is null or username null");
          }
          String accessToken= getBearerToken();
 
         ResponseEntity<Object> objectResponseEntity =  accessManagementService.updateAwardDetailsByAwardId(awardNumber,
-                awardUpdateRequest,accessToken);
+                userPrincipleResp.getUserName(),awardUpdateRequest,accessToken);
         //Audit entry
         StringBuilder eventMsg = new StringBuilder(awardNumber.toString()).append(" Award status ")
                 .append(" updated to ")
@@ -189,6 +187,8 @@ public class AccessManagementController {
                 .append(" By ").append(userPrincipleResp.getUserName());
         SearchUtils.saveAuditLogForUpdate(userPrincipleResp,"Update Award", awardNumber.toString(),
                 eventMsg.toString(),auditLogsRepository);
+
+
         return objectResponseEntity;
     }
 
@@ -220,7 +220,7 @@ public class AccessManagementController {
 
     public String getBearerToken() throws AccessTokenException {
 
-       MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
         map.add("client_id", environment.getProperty("client-Id"));
         map.add("client_secret",environment.getProperty("client-secret"));
@@ -245,7 +245,7 @@ public class AccessManagementController {
     public ResponseEntity<AuditLogsResultsResponse> retrieveAuditDetails(@RequestHeader("userPrinciple")
              HttpHeaders userPrinciple, @Valid @RequestBody AuditSearchRequest searchInput) {
 
-        log.info("{}::  Before calling retrieveAuditDetails", loggingComponentName);
+        log.info("{}::  Before calling retrieveAuditDetails::{}", loggingComponentName);
 
         //Set Default Page records
         if(searchInput.getTotalRecordsPerPage() == 0) {
