@@ -16,7 +16,12 @@ import com.beis.subsidy.control.accessmanagementservice.repository.AwardReposito
 import com.beis.subsidy.control.accessmanagementservice.repository.GrantingAuthorityRepository;
 import com.beis.subsidy.control.accessmanagementservice.repository.SubsidyMeasureRepository;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetailsRequest;
-import com.beis.subsidy.control.accessmanagementservice.response.*;
+import com.beis.subsidy.control.accessmanagementservice.response.AuditLogsResultsResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.GrantingAuthorityResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.SearchSubsidyResultsResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.SearchResults;
 import com.beis.subsidy.control.accessmanagementservice.service.AccessManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -112,11 +117,13 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         List<Award> allAwardList = awardRepository.findAll(getAwardSpecification(gaId));
         Map<String, Integer> awardUserActionCount = adminAwardCounts(allAwardList);
         addAwardToSearchResult(awardUserActionCount, searchResults);
-        log.info("End of allAwardList & size ::{}", allAwardList.size());
+        log.info("{}::Inside method of findGAAdminDashboardData and allAwardList size {}::", loggingComponentName,
+                allAwardList.size());
         List<SubsidyMeasure> allSubObjList = subsidyMeasureRepository.findAll(subsidyMeasureByGrantingAuthority(gaId));
         Map<String, Integer> subObjUserActionCount = subsidyMeasureCounts(userPrincipleObj, allSubObjList);
         addSubsidiesToSearchResults(searchResults, subObjUserActionCount);
-        log.info("{}::End of method findGAAdminDashboardData", loggingComponentName);
+        log.info("{}::Inside method of findGAAdminDashboardData and allSubObjList size {}::", loggingComponentName,
+                allSubObjList.size());
         return searchResults;
     }
     @Override
@@ -247,6 +254,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
         Page<Award> pageAwards = null;
         List<Award> awardResults = null;
+        List<Award> awards = null;
         Specification<Award> awardSpecifications = getSpecificationAwardDetails(searchName, status);
 
         List<Sort.Order> orders = getOrderByCondition(sortBy);
@@ -255,25 +263,36 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         if (AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrinciple.getRole().trim())) {
             pageAwards = awardRepository.findAll(awardSpecifications, pagingSortAwards);
             awardResults = pageAwards.getContent();
+            awards = awardRepository.findAll(awardSpecifications);
 
         } else {
-            Long gaId = getGrantingAuthorityIdByName(userPrinciple.getGrantingAuthorityGroupName());
-            if(gaId == null || gaId <= 0){
-                throw new UnauthorisedAccessException("Invalid granting authority name");
-            }
 
-            if(!StringUtils.isEmpty(searchName) || !StringUtils.isEmpty(status)) {
-                pageAwards = awardRepository.findAll(awardSpecifications,pagingSortAwards);
+            if(!StringUtils.isEmpty(searchName) || !StringUtils.isEmpty(status))  {
+
+                Specification<Award> awardSpecificationsForGaRoles = getSpecificationAwardDetailsByGaRoles(searchName,
+                        status,userPrinciple.getGrantingAuthorityGroupName());
+                pageAwards = awardRepository.findAll(awardSpecificationsForGaRoles,pagingSortAwards);
                 awardResults = pageAwards.getContent();
+                awards =  awardRepository.findAll(awardSpecificationsForGaRoles);
+
             } else {
+
+                Long gaId = getGrantingAuthorityIdByName(userPrinciple.getGrantingAuthorityGroupName());
+                if(gaId == null || gaId <= 0){
+                    throw new UnauthorisedAccessException("Invalid granting authority name");
+                }
                 pageAwards = awardRepository.findAll(getAwardSpecification(gaId),pagingSortAwards);
                 awardResults = pageAwards.getContent();
+                awards =  awardRepository.findAll(getAwardSpecification(gaId));
+
             }
         }
+
+
         SearchSubsidyResultsResponse searchResults = null;
 
         if (!awardResults.isEmpty()) {
-            List<Award> awards = awardRepository.findAll();
+            //List<Award> awards = awardRepository.findAll();
             searchResults = new SearchSubsidyResultsResponse(awardResults, pageAwards.getTotalElements(),
                     pageAwards.getNumber() + 1, pageAwards.getTotalPages(),adminAwardCounts(awards));
         } else {
@@ -423,6 +442,27 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         return awardSpecifications;
     }
 
+    private Specification<Award> getSpecificationAwardDetailsByGaRoles(String searchName, String status, String gaName) {
+
+        Specification<Award> awardSpecifications = Specification
+
+                // subsidyMeasureTitle from input parameter
+                .where(
+                        SearchUtils.checkNullOrEmptyString(searchName)
+                                ? null :AwardSpecificationUtils.subsidyMeasureTitle(searchName.trim())
+                                .or(searchName != null && searchName.matches("[0-9]+") ?
+                                        AwardSpecificationUtils.awardByNumber(Long.valueOf(searchName)):null)
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim())))
+                .and(SearchUtils.checkNullOrEmptyString(gaName) ? null :
+                        AwardSpecificationUtils.grantingAuthorityName(gaName.trim()))
+                .and(SearchUtils.checkNullOrEmptyString(status)
+                        ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
+        return awardSpecifications;
+    }
+
     private List<Sort.Order> getOrderByCondition(String[] sortBy) {
 
         List<Sort.Order> orders = new ArrayList<Sort.Order>();
@@ -502,13 +542,12 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         List<Sort.Order> orders = getOrderByConditionAudits(sortBy);
         Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage,Sort.by(orders));
 
-
         if (!StringUtils.isEmpty(searchName) || searchStartDate != null
                 || searchEndDate != null) {
-
+            log.info("{} :: inside if ", loggingComponentName);
             pageAwards = auditLogsRepository.findAll(auditSpecifications,pagingSortAwards);
         } else {
-
+            log.info("{} :: inside else if", loggingComponentName);
         	pageAwards = auditLogsRepository.findByUserName(userName,  pagingSortAwards);
         }
 
