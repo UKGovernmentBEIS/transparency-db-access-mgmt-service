@@ -162,8 +162,10 @@ public class SearchUtils {
 	public static UserPrinciple validateRoleFromUserPrincipleObject(ObjectMapper objectMapper, HttpHeaders userPrinciple,
 																	String verifyRole) {
 		UserPrinciple userPrincipleObj = null;
-		String userPrincipleStr = userPrinciple.get("userPrinciple").get(0);
+
 		try {
+			String userPrincipleStr = userPrinciple.get("userPrinciple").get(0);
+
 			userPrincipleObj = objectMapper.readValue(userPrincipleStr, UserPrinciple.class);
 			if (!userPrincipleObj.getRole().equals(verifyRole)) {
 				throw new UnauthorisedAccessException("You are not authorised to view Admin Dashboard");

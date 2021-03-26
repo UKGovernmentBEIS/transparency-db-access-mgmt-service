@@ -158,7 +158,7 @@ public class UserManagementController {
         log.info("{}:: Before calling retrieveUserDetailsByGroupId",loggingComponentName);
         SearchUtils.isRoleValid(objectMapper,userPrinciple);
         String access_token = getBearerToken();
-        log.info("{}:: After access_token in retrieveUserDetailsByGroupId",loggingComponentName);
+        log.info("{}:: After access_token in retrieveUserDetailsByGroupId & GroupId ::{}",loggingComponentName,groupId);
         UserDetailsResponse response =  userManagementService.getUserRolesByGrpId(access_token,groupId);
         return ResponseEntity.status(200).body(response);
     }
