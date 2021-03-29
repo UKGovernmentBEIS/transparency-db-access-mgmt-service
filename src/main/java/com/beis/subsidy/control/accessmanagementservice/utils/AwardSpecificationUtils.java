@@ -78,7 +78,10 @@ public final class AwardSpecificationUtils {
 	 */
 	public static Specification<AuditLogs> auditUser(String userName) {
 		
-		return (root, query, builder) -> builder.equal(root.get("userName"), userName);
+		 return (root, query, builder) -> builder.equal(root.get("userName"), userName);
+
+		//return (root, query, builder) -> builder.like(builder.lower(root.get("userName")),
+		//		builder.lower(builder.literal("%" + userName.trim() + "%")));
 	}
 	
 	/**
@@ -89,7 +92,10 @@ public final class AwardSpecificationUtils {
 	 */
 	public static Specification<AuditLogs> auditGrantingAuthority(String gaName) {
 		
-		return (root, query, builder) -> builder.equal(root.get("gaName"), gaName);
+		//return (root, query, builder) -> builder.equal(root.get("gaName"), gaName);
+
+		return (root, query, builder) -> builder.like(builder.lower(root.get("gaName")),
+				builder.lower(builder.literal("%" + gaName.trim() + "%")));
 	}
 	
 	public static Specification<AuditLogs> auditLogRange(LocalDate fromDate, LocalDate toDate) {

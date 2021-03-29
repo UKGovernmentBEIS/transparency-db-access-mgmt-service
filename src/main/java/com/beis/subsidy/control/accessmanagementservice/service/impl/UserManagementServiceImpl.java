@@ -306,15 +306,17 @@ public class UserManagementServiceImpl implements UserManagementService {
         Object clazz;
         try {
             response = graphAPIFeignClient.inviteUser("Bearer " + token, invitationRequest);
-            log.info("{}:: after invite User Graph Api call {}", loggingComponentName);
+            log.info("{}:: after invite User Graph Api call {}", loggingComponentName,response);
 
-            if (response.status() == 201) {
+            if (response != null && response.status() == 201) {
+                log.info("{}:: after response  and inside if {}", loggingComponentName,response.status());
                 clazz = UserResponse.class;
                 ResponseEntity<Object> responseResponseEntity =  toResponseEntity(response, clazz);
                 userResponse
                         = (UserResponse) responseResponseEntity.getBody();
                 status = response.status();
-            } else if (response.status() == 400) {
+            } else if (response != null && response.status() == 400) {
+
                 throw new InvalidRequestException("invite user request is invalid");
             } else {
                 log.error("{}:: Graph Api  inviteUser:: status code {}",
@@ -335,7 +337,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
         Response response = null;
         try {
-            log.info("{}:: before updateUser User Graph Api call {} ::{}", loggingComponentName);
+            log.info("{}:: before updateUser User Graph Api call", loggingComponentName);
             response = graphAPIFeignClient.updateUser("Bearer " + token, userId,request);
             log.info("{}:: after updateUser User Graph Api call & status is {}", loggingComponentName,response.status());
             if (response.status() == 400) {

@@ -247,6 +247,8 @@ public class AccessManagementController {
 
         log.info("{}::  Before calling retrieveAuditDetails::{}", loggingComponentName);
 
+        UserPrinciple userPrincipleResp = SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+
         //Set Default Page records
         if(searchInput.getTotalRecordsPerPage() == 0) {
 			searchInput.setTotalRecordsPerPage(10);
@@ -259,8 +261,8 @@ public class AccessManagementController {
         	 startDate =LocalDate.parse(searchInput.getSearchStartDate());
         	 endDate =LocalDate.parse(searchInput.getSearchEndDate());
         }
-      String userName=  SearchUtils.getUserName(objectMapper, userPrinciple);
-      AuditLogsResultsResponse searchResults = accessManagementService.findMatchingAuditLogDetails(userName,
+
+      AuditLogsResultsResponse searchResults = accessManagementService.findMatchingAuditLogDetails(userPrincipleResp,
         		searchInput.getSearchName(),startDate,endDate, searchInput.getPageNumber(), searchInput.getTotalRecordsPerPage(), searchInput.getSortBy());
       return new ResponseEntity<AuditLogsResultsResponse>(searchResults, HttpStatus.OK);
     }

@@ -529,7 +529,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     
     
     @Override
-    public AuditLogsResultsResponse findMatchingAuditLogDetails(String userName,String searchName, LocalDate searchStartDate,LocalDate searchEndDate,
+    public AuditLogsResultsResponse findMatchingAuditLogDetails(UserPrinciple userPrinciple,String searchName, LocalDate searchStartDate,LocalDate searchEndDate,
                              Integer page, Integer recordsPerPage,String[] sortBy) {
 
     	log.info("{} :: inside findMatchingAuditLogDetails ", loggingComponentName);
@@ -538,17 +538,25 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
         Specification<AuditLogs> auditSpecifications = getSpecificationAuditDetails(searchName,searchStartDate,searchEndDate);
 
-
         List<Sort.Order> orders = getOrderByConditionAudits(sortBy);
         Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage,Sort.by(orders));
 
-        if (!StringUtils.isEmpty(searchName) || searchStartDate != null
-                || searchEndDate != null) {
-            log.info("{} :: inside if ", loggingComponentName);
-            pageAwards = auditLogsRepository.findAll(auditSpecifications,pagingSortAwards);
+        if (AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrinciple.getRole().trim())) {
+            pageAwards = auditLogsRepository.findAll(auditSpecifications, pagingSortAwards);
+            //auditResults = pageAwards.getContent();
+
         } else {
-            log.info("{} :: inside else if", loggingComponentName);
-        	pageAwards = auditLogsRepository.findByUserName(userName,  pagingSortAwards);
+
+            if (!StringUtils.isEmpty(searchName) || searchStartDate != null
+                    || searchEndDate != null) {
+                log.info("{} :: inside else if ", loggingComponentName);
+                pageAwards = auditLogsRepository.findAll(auditSpecifications,pagingSortAwards);
+            } else {
+                log.info("{} :: inside else of else", loggingComponentName);
+                pageAwards = auditLogsRepository.findByGaName(userPrinciple.getGrantingAuthorityGroupName().trim(),
+                        pagingSortAwards);
+            }
+
         }
 
         auditResults = pageAwards.getContent();

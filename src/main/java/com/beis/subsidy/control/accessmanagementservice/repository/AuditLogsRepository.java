@@ -14,4 +14,5 @@ import com.beis.subsidy.control.accessmanagementservice.model.AuditLogs;
 public interface AuditLogsRepository extends JpaRepository<AuditLogs, Long>, JpaSpecificationExecutor<AuditLogs> {
 
 	Page<AuditLogs> findByUserName(String  userName, Pageable pageable);
+	Page<AuditLogs> findByGaName(String  gaName, Pageable pageable);
 }
