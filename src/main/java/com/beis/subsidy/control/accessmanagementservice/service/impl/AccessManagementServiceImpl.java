@@ -535,25 +535,28 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     	log.info("{} :: inside findMatchingAuditLogDetails ", loggingComponentName);
         Page<AuditLogs> pageAwards = null;
         List<AuditLogs> auditResults = null;
-
-        Specification<AuditLogs> auditSpecifications = getSpecificationAuditDetails(searchName,searchStartDate,searchEndDate);
-
+        Specification<AuditLogs> auditSpecifications;
         List<Sort.Order> orders = getOrderByConditionAudits(sortBy);
         Pageable pagingSortAwards = PageRequest.of(page - 1, recordsPerPage,Sort.by(orders));
 
         if (AccessManagementConstant.BEIS_ADMIN_ROLE.equals(userPrinciple.getRole().trim())) {
+            auditSpecifications = getSpecificationAuditDetails(searchName,searchStartDate,searchEndDate);
             pageAwards = auditLogsRepository.findAll(auditSpecifications, pagingSortAwards);
-            //auditResults = pageAwards.getContent();
 
         } else {
 
             if (!StringUtils.isEmpty(searchName) || searchStartDate != null
                     || searchEndDate != null) {
-                log.info("{} :: inside else if ", loggingComponentName);
+
+                log.info("{} :: inside else if for GA Admin user ", loggingComponentName);
+                auditSpecifications = getGAAdminSpecificationAuditDetails(searchName,searchStartDate,searchEndDate,
+                        userPrinciple.getGrantingAuthorityGroupName());
                 pageAwards = auditLogsRepository.findAll(auditSpecifications,pagingSortAwards);
+
             } else {
-                log.info("{} :: inside else of else", loggingComponentName);
-                pageAwards = auditLogsRepository.findByGaName(userPrinciple.getGrantingAuthorityGroupName().trim(),
+
+                log.info("{} :: inside else of else GA Admin user", loggingComponentName);
+                pageAwards = auditLogsRepository.findByGaName(userPrinciple.getUserName().trim(),
                         pagingSortAwards);
             }
 
@@ -563,7 +566,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         AuditLogsResultsResponse searchResults = null;
 
         if (!auditResults.isEmpty()) {
-        	 log.info("{} :: auditResults were not empty",loggingComponentName);
+
+        	log.info("{} :: auditResults were not empty",loggingComponentName);
             searchResults = new AuditLogsResultsResponse(auditResults, pageAwards.getTotalElements(),
                     pageAwards.getNumber() + 1, pageAwards.getTotalPages());
         } else {
@@ -584,6 +588,23 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                                 ? null :AwardSpecificationUtils.auditGrantingAuthority(searchName.trim())))
         .and((searchStartDate==null || searchEndDate==null)
                                 ? null :AwardSpecificationUtils.auditLogRange(searchStartDate,searchEndDate));
+        return auditSpecifications;
+
+    }
+
+
+    public Specification<AuditLogs>  getGAAdminSpecificationAuditDetails(String searchName,LocalDate searchStartDate,
+                                                                         LocalDate searchEndDate,String gaName) {
+
+        Specification<AuditLogs> auditSpecifications = Specification
+
+                .where(
+                        SearchUtils.checkNullOrEmptyString(searchName)
+                                ? null :AwardSpecificationUtils.auditUser(searchName.trim()))
+                .and((searchStartDate==null || searchEndDate==null)
+                        ? null :AwardSpecificationUtils.auditLogRange(searchStartDate,searchEndDate))
+                .and(SearchUtils.checkNullOrEmptyString(gaName)
+                        ? null :AwardSpecificationUtils.auditGrantingAuthority(gaName.trim()));
         return auditSpecifications;
 
     }
