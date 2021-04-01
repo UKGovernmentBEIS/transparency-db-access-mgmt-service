@@ -556,7 +556,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
             } else {
 
                 log.info("{} :: inside else of else GA Admin user", loggingComponentName);
-                pageAwards = auditLogsRepository.findByGaName(userPrinciple.getUserName().trim(),
+                pageAwards = auditLogsRepository.findByGaName(userPrinciple.getGrantingAuthorityGroupName().trim(),
                         pagingSortAwards);
             }
 
@@ -583,7 +583,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
         .where(
                 SearchUtils.checkNullOrEmptyString(searchName)
-                        ? null :AwardSpecificationUtils.auditUser(searchName.trim())
+                        ? null :AwardSpecificationUtils.auditUserLikeSearch(searchName.trim())
                         .or(SearchUtils.checkNullOrEmptyString(searchName)
                                 ? null :AwardSpecificationUtils.auditGrantingAuthority(searchName.trim())))
         .and((searchStartDate==null || searchEndDate==null)
@@ -600,11 +600,11 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
                 .where(
                         SearchUtils.checkNullOrEmptyString(searchName)
-                                ? null :AwardSpecificationUtils.auditUser(searchName.trim()))
+                                ? null :AwardSpecificationUtils.auditUserEqualSearch(searchName.trim()))
                 .and((searchStartDate==null || searchEndDate==null)
                         ? null :AwardSpecificationUtils.auditLogRange(searchStartDate,searchEndDate))
                 .and(SearchUtils.checkNullOrEmptyString(gaName)
-                        ? null :AwardSpecificationUtils.auditGrantingAuthority(gaName.trim()));
+                        ? null :AwardSpecificationUtils.searchByGrantingAuthorityName(gaName.trim()));
         return auditSpecifications;
 
     }

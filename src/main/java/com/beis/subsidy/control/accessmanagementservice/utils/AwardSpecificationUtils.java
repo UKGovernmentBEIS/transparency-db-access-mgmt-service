@@ -76,11 +76,16 @@ public final class AwardSpecificationUtils {
 	 * @param userName - Add subsidy measure title
 	 * @return Specification<Award> - Specification for Award
 	 */
-	public static Specification<AuditLogs> auditUser(String userName) {
-		
-		 return (root, query, builder) -> builder.equal(root.get("userName"), userName);
+	public static Specification<AuditLogs> auditUserLikeSearch(String userName) {
+
+		return (root, query, builder) -> builder.like(builder.lower(root.get("userName")),
+				builder.lower(builder.literal("%" + userName.trim() + "%")));
 	}
-	
+
+	public static Specification<AuditLogs> auditUserEqualSearch(String userName) {
+
+		return (root, query, builder) -> builder.equal(root.get("userName"), userName);
+	}
 	/**
 	 * To define specification for audit logs
 	 *
@@ -91,6 +96,12 @@ public final class AwardSpecificationUtils {
 		
 		return (root, query, builder) -> builder.like(builder.lower(root.get("gaName")),
 				builder.lower(builder.literal("%" + gaName.trim() + "%")));
+	}
+
+	public static Specification<AuditLogs> searchByGrantingAuthorityName(String gaName) {
+
+		return (root, query, builder) -> builder.equal(root.get("gaName"),
+				gaName.trim());
 	}
 	
 	public static Specification<AuditLogs> auditLogRange(LocalDate fromDate, LocalDate toDate) {
