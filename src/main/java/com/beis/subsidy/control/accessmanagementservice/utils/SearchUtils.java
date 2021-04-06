@@ -217,7 +217,7 @@ public class SearchUtils {
 
 	}
 
-	public static void saveAuditLog(UserPrinciple userPrinciple, String action,String userId,
+	public static void saveAuditLog(UserPrinciple userPrinciple, String action,String msg,String userId,
 								   AuditLogsRepository auditLogsRepository) {
 		AuditLogs audit = new AuditLogs();
 		try {
@@ -225,7 +225,7 @@ public class SearchUtils {
 			audit.setUserName(userName);
 			audit.setEventType(action);
 			audit.setEventId(userId);
-			audit.setEventMessage("User created by  " + userName);
+			audit.setEventMessage(msg);
 			audit.setGaName(userPrinciple.getGrantingAuthorityGroupName());
 			audit.setCreatedTimestamp(LocalDate.now());
 			auditLogsRepository.save(audit);

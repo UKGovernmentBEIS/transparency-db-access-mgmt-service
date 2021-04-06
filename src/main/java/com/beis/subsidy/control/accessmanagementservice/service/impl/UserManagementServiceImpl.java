@@ -103,46 +103,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         });
     }
 
-    /**
-     * Add the user in the Azure group
-     * @param token
-     * @param request
-     * @return
-     */
-    @Override
-    public UserResponse addUser(String token, AddUserRequest request) {
-        Response response = null;
-        int status = 0;
-        UserResponse userResponse;
-        Object clazz;
-        try {
-            long time1 = System.currentTimeMillis();
-            response = graphAPIFeignClient.addUser("Bearer " + token, request);
-            log.info("{}:: Time taken to call Graph Api is {}", loggingComponentName, (System.currentTimeMillis() - time1));
-
-            if (response.status() == 201) {
-                clazz = UserResponse.class;
-                ResponseEntity<Object> responseResponseEntity =  toResponseEntity(response, clazz);
-                userResponse
-                        = (UserResponse) responseResponseEntity.getBody();
-                status = response.status();
-            } else if (response.status() == 400) {
-                throw new InvalidRequestException("create user request is invalid");
-            } else {
-                log.error("{}:: Graph Api  addUser:: status code {}",
-                        loggingComponentName, response.status());
-                throw new AccessManagementException(HttpStatus.valueOf(response.status()), "Create User Graph Api Failed");
-            }
-
-        } catch (FeignException ex) {
-            log.error("{}:: Graph Api failed addUser:: status code {} & message {}",
-                    loggingComponentName, ex.status(), ex.getMessage());
-            throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
-        }
-        return userResponse;
-    }
-
-    /**
+   /**
      * Delete the user based on the user id
      * @param token
      * @param userId
