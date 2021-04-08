@@ -182,7 +182,7 @@ public class AccessManagementController {
                 userPrincipleResp.getUserName(),awardUpdateRequest,accessToken);
         //Audit entry
         StringBuilder eventMsg = new StringBuilder("Award ").append(awardNumber.toString())
-                .append(" is ") .append(awardUpdateRequest.getStatus());
+                .append(" status is updated to ").append(awardUpdateRequest.getStatus()) ;
         SearchUtils.saveAuditLogForUpdate(userPrincipleResp,"Update Award", awardNumber.toString(),
                 eventMsg.toString(),auditLogsRepository);
 
