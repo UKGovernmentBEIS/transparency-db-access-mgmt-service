@@ -62,28 +62,6 @@ public class UserManagementController {
     Environment environment;
 
     @PostMapping(
-            value = "/adduser",
-            produces = APPLICATION_JSON_VALUE
-    )
-    public ResponseEntity<Object> addUser(@RequestHeader("UserPrinciple") HttpHeaders userPrinciple,
-                                          @RequestBody UserRequest request) {
-
-        log.info("{}::Before calling addUser", loggingComponentName);
-        UserPrinciple userPrincipleObj =SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
-        String access_token = getBearerToken();
-        AddUserRequest reqObj = new AddUserRequest(request.isAccountEnabled(),request.getSurName(),
-                request.getDisplayName(),request.getMailNickname(),request.getUserPrincipalName(),
-                request.getMobilePhone(),request.getPasswordProfile());
-        UserResponse response =  userManagementService.addUser(access_token,reqObj);
-        request.getGrpRoleIds().forEach(roleId -> {
-             userManagementService.createGroupForUser(access_token, roleId, response.getId());
-        });
-
-     SearchUtils.saveAuditLog(userPrincipleObj,"Create User",response.getId(),auditLogsRepository);
-     return ResponseEntity.status(201).body(response);
-    }
-
-    @PostMapping(
             value = "/invitation",
             produces = APPLICATION_JSON_VALUE
     )
@@ -104,7 +82,7 @@ public class UserManagementController {
         request.getGrpRoleIds().forEach(roleId -> {
             userManagementService.createGroupForUser(access_token, roleId, response.getInvitedUser().getId());
         });
-        SearchUtils.saveAuditLog(userPrincipleObj,"Create User",response.getId(),auditLogsRepository);
+        SearchUtils.saveAuditLog(userPrincipleObj,"Create User","User Created",response.getId(),auditLogsRepository);
         return ResponseEntity.status(201).body(response);
     }
 
@@ -143,7 +121,7 @@ public class UserManagementController {
         }
         String access_token = getBearerToken();
         int response =  userManagementService.deleteUser(access_token,userId);
-        SearchUtils.saveAuditLog(userPrincipleObj,"Delete User", userId,auditLogsRepository);
+        SearchUtils.saveAuditLog(userPrincipleObj,"Delete User","User deleted", userId,auditLogsRepository);
         log.info("{} :: audit entry created for deleteUser ::{}", loggingComponentName, response);
         return ResponseEntity.status(response).build();
     }
@@ -188,6 +166,7 @@ public class UserManagementController {
     }
 
     public String getBearerToken() throws AccessTokenException {
+
 
       MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");

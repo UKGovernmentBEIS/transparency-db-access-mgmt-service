@@ -18,17 +18,20 @@ public class EmailUtils {
 						 String approverName,Environment environment) throws NotificationClientException {
 
 		String templateId = "";
-		NotificationClient client = new NotificationClient(environment.getProperty("apiKey"));
-		Map<String, Object> personalisation = new HashMap<>();
-		personalisation.put("award_number", awardNumber);
-		personalisation.put("approver_name", approverName);
-		if (status.equals("Published")) {
-			templateId = environment.getProperty("award_approved_template");
-		} else if(status.equals("Rejected")) {
-			templateId = environment.getProperty("award_reject_template");
+		if (!StringUtils.isEmpty(environment.getProperty("apiKey"))) {
+
+			NotificationClient client = new NotificationClient(environment.getProperty("apiKey"));
+			Map<String, Object> personalisation = new HashMap<>();
+			personalisation.put("award_number", awardNumber);
+			personalisation.put("approver_name", approverName);
+			if (status.equals("Published")) {
+				templateId = environment.getProperty("award_approved_template");
+			} else if (status.equals("Rejected")) {
+				templateId = environment.getProperty("award_reject_template");
+			}
+			SendEmailResponse response = client.sendEmail(templateId, emailId, personalisation, null);
+			log.info("Email notification sent :: ");
 		}
-		SendEmailResponse response = client.sendEmail(templateId, emailId, personalisation, null);
-		log.info("Email notification sent :: ");
 	}
 
 

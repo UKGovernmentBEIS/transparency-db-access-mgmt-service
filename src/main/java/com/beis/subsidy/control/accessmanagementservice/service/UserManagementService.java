@@ -11,8 +11,6 @@ public interface UserManagementService {
 
     UserDetailsResponse getUserRolesByGrpId(String token, String userId);
 
-    UserResponse addUser(String token, AddUserRequest request);
-
     UserRolesResponse getUserGroup(String token, String userId);
 
     int deleteUser(String token, String userId);

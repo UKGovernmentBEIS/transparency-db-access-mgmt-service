@@ -181,10 +181,8 @@ public class AccessManagementController {
         ResponseEntity<Object> objectResponseEntity =  accessManagementService.updateAwardDetailsByAwardId(awardNumber,
                 userPrincipleResp.getUserName(),awardUpdateRequest,accessToken);
         //Audit entry
-        StringBuilder eventMsg = new StringBuilder(awardNumber.toString()).append(" Award status ")
-                .append(" updated to ")
-                .append(awardUpdateRequest.getStatus())
-                .append(" By ").append(userPrincipleResp.getUserName());
+        StringBuilder eventMsg = new StringBuilder("Award ").append(awardNumber.toString())
+                .append(" status is updated to ").append(awardUpdateRequest.getStatus()) ;
         SearchUtils.saveAuditLogForUpdate(userPrincipleResp,"Update Award", awardNumber.toString(),
                 eventMsg.toString(),auditLogsRepository);
 
@@ -220,7 +218,7 @@ public class AccessManagementController {
 
     public String getBearerToken() throws AccessTokenException {
 
-        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+       MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
         map.add("client_id", environment.getProperty("client-Id"));
         map.add("client_secret",environment.getProperty("client-secret"));
