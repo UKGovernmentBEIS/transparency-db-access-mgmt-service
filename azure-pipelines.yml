@@ -62,10 +62,10 @@ stages:
           runOnce:
             deploy:
               steps:
-                - task: DownloadPipelineArtifact@1
-                  displayName: 'Download Pipeline Artifact'
+                - task: Bash@3
                   inputs:
-                    buildType: 'current'
+                    targetType: 'inline'
+                    script: ls -R $(Pipeline.Workspace)
                 - task: AzureRmWebAppDeployment@4
                   inputs:
                     ConnectionType: 'AzureRM'
