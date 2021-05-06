@@ -9,12 +9,6 @@ trigger:
 
 variables:
 
-  # Azure Resource Manager connection created during pipeline creation
-  azureSubscription: '8e9969b3-7574-441c-a10f-7114dc3314f7'
-
-  # Web app name
-  webAppName: 'dev-transparency-db-public-search-service'
-
   # Agent VM image name
   vmImageName: 'ubuntu-20.04'
 
@@ -72,3 +66,10 @@ stages:
                   displayName: 'Download Pipeline Artifact'
                   inputs:
                     buildType: 'current'
+                - task: AzureRmWebAppDeployment@4
+                  inputs:
+                    ConnectionType: 'AzureRM'
+                    azureSubscription: 'CGI-AzureDevOps-BEIS'
+                    appType: 'webAppLinux'
+                    WebAppName: 'dev-transparency-db-access-management-service'
+                    packageForLinux: '$(Pipeline.Workspace)/**/*.?(war|jar)'
