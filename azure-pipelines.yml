@@ -42,8 +42,7 @@ stages:
               SourceFolder: '$(System.DefaultWorkingDirectory)/target'
               Contents: '*.?(war|jar)'
               TargetFolder: $(Build.ArtifactStagingDirectory)
-
-          - task: PublishPipelineArtifact@0
+          - task: PublishPipelineArtifact@1
             displayName: 'Publish pipeline artifacts'
             inputs:
               targetPath: $(Build.ArtifactStagingDirectory)
@@ -55,7 +54,7 @@ stages:
     jobs:
       - deployment: DeployLinuxWebApp
         displayName: Deploy Linux Web App
-        environment: 'development'
+        environment: 'dev'
         pool:
           vmImage: $(vmImageName)
         strategy:
