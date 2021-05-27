@@ -52,8 +52,8 @@ stages:
     dependsOn: Build
     condition: succeeded()
     jobs:
-      - deployment: DeployLinuxWebApp
-        displayName: Deploy Linux Web App
+      - deployment: DeployLinuxWebAppDev
+        displayName: Deploy Linux Web App - TestDev
         environment: 'dev'
         pool:
           vmImage: $(vmImageName)
@@ -72,8 +72,8 @@ stages:
                     appType: 'webAppLinux'
                     WebAppName: 'dev-transparency-db-access-management-service'
                     packageForLinux: '$(Pipeline.Workspace)/app.jar'
-      - deployment: DeployLinuxWebApp
-        displayName: Deploy Linux Web App
+      - deployment: DeployLinuxWebAppStg
+        displayName: Deploy Linux Web App - Staging
         environment: 'stg'
         pool:
           vmImage: $(vmImageName)
