@@ -90,5 +90,5 @@ stages:
                     ConnectionType: 'AzureRM'
                     azureSubscription: 'BEIS-Subsidy-Control-Staging'
                     appType: 'webAppLinux'
-                    WebAppName: 'dev-transparency-db-access-management-service'
+                    WebAppName: 'stg-transparency-db-access-management-service'
                     packageForLinux: '$(Pipeline.Workspace)/app.jar'
