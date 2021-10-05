@@ -85,6 +85,7 @@ stages:
     displayName: Deploy to staging environment
     dependsOn: Build
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    jobs:
       - deployment: DeployLinuxWebAppStg
         displayName: Deploy Linux Web App - Staging
         environment: 'stg'
@@ -105,3 +106,4 @@ stages:
                     appType: 'webAppLinux'
                     WebAppName: 'stg-transparency-db-access-management-service'
                     packageForLinux: '$(Pipeline.Workspace)/app.jar'
+
