@@ -246,6 +246,9 @@ public class UserManagementServiceImpl implements UserManagementService {
                 ResponseEntity<Object> responseResponseEntity = toResponseEntity(response, clazz);
                 userDetailsResponse
                         = (UserDetailsResponse) responseResponseEntity.getBody();
+                if (Objects.nonNull(userDetailsResponse)) {
+                    mapGroupInfoToUser(token,userDetailsResponse.getUserProfiles());
+                }
 
             } else if (response.status() == 404) {
                 throw new SearchResultNotFoundException("get users not found");
