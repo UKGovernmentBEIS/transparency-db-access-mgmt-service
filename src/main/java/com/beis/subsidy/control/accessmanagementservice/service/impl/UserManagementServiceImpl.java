@@ -92,14 +92,17 @@ public class UserManagementServiceImpl implements UserManagementService {
         log.info("{}::before calling toGraph Api in the mapGroupInfoToUser",loggingComponentName);
         userProfiles.forEach(userProfile -> {
             UserRolesResponse userRolesResponse = getUserGroup(token,userProfile.getId());
-            String roleName = userRolesResponse.getUserRoles().stream().filter(
-                    userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
-                    .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get();
-           if(!StringUtils.isEmpty(roleName)) {
+            if(userRolesResponse.getUserRoles().isEmpty()){
+                userProfile.setRoleName("Azure-User");
+            }else{
+                String roleName = userRolesResponse.getUserRoles().stream().filter(
+                        userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
+                        .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get();
+                if(!StringUtils.isEmpty(roleName)) {
 
-               userProfile.setRoleName(roleName);
-           }
-
+                    userProfile.setRoleName(roleName);
+                }
+            }
         });
     }
 
