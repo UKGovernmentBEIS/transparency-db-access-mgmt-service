@@ -198,14 +198,8 @@ public class UserManagementController {
         UserDetailsResponse response =  userManagementService.getAllUsers(access_token);
 
         List <UserResponse> userList = response.getUserProfiles();
-        Iterator itr = userList.iterator();
 
-        while (itr.hasNext()){
-            UserResponse user = (UserResponse)itr.next();
-            if(user.getRoleName() == "Azure-User"){
-                itr.remove();
-            }
-        }
+        userList.removeIf(user -> Objects.equals(user.getRoleName(), "Azure-User"));
 
         return ResponseEntity.status(200).body(response);
     }
