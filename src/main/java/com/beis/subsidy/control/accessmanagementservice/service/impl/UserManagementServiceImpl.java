@@ -97,6 +97,8 @@ public class UserManagementServiceImpl implements UserManagementService {
                 userGroupsResponse = (UserGroupsResponse) responseResponseEntity.getBody();
             }
 
+            //TODO: Remove app roles from list of returned userGroups. Should be left with single GA group
+
         } catch (Exception e) {
             e.printStackTrace();
         }
