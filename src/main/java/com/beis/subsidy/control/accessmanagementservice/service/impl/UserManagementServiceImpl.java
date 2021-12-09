@@ -10,10 +10,7 @@ import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.CreateUserInGroupRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.InvitationRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateUserRequest;
-import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserRolesResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserRoleResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.*;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
 import feign.FeignException;
 import feign.Response;
@@ -86,6 +83,27 @@ public class UserManagementServiceImpl implements UserManagementService {
         return userDetailsResponse;
     }
 
+    public String getUserGrantingAuthority(String token, String uid){
+        String userGrantingAuthority = "";
+        Response response = null;
+        Object clazz;
+        UserGroupsResponse userGroupsResponse = null;
+
+        try {
+            response = graphAPIFeignClient.getUserGroups("Bearer " + token,uid);
+            if (response.status() == 200) {
+                clazz = UserGroupsResponse.class;
+                ResponseEntity<Object> responseResponseEntity = toResponseEntity(response, clazz);
+                userGroupsResponse = (UserGroupsResponse) responseResponseEntity.getBody();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return userGrantingAuthority;
+    }
+
     public  void mapGroupInfoToUser(String token, List<UserResponse> userProfiles) {
 
        // final UserRolesResponse userResponse;
@@ -99,9 +117,9 @@ public class UserManagementServiceImpl implements UserManagementService {
                         userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
                         .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get();
                 if(!StringUtils.isEmpty(roleName)) {
-
                     userProfile.setRoleName(roleName);
                 }
+                String userGA = getUserGrantingAuthority(token, userProfile.getId());
             }
         });
     }
