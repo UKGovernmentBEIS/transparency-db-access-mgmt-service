@@ -12,6 +12,7 @@ import com.beis.subsidy.control.accessmanagementservice.request.InvitationReques
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateUserRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.*;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
+import com.beis.subsidy.control.accessmanagementservice.utils.AccessManagementConstant;
 import feign.FeignException;
 import feign.Response;
 import lombok.extern.slf4j.Slf4j;
@@ -96,9 +97,17 @@ public class UserManagementServiceImpl implements UserManagementService {
                 ResponseEntity<Object> responseResponseEntity = toResponseEntity(response, clazz);
                 userGroupsResponse = (UserGroupsResponse) responseResponseEntity.getBody();
             }
+            List <UserGroupResponse> userGroups = userGroupsResponse.getUserGroups();
 
-            //TODO: Remove app roles from list of returned userGroups. Should be left with single GA group
+            for (String role : AccessManagementConstant.AAD_ROLE_NAMES) {
+                userGroups.removeIf(userGroup -> Objects.equals(userGroup.getDisplayName(), role));
+            }
 
+            if(userGroups.size() == 1){
+                userGrantingAuthority = userGroups.get(0).getDisplayName();
+            }else{
+                throw new InvalidRequestException("Group list is size '" + userGroups.size() + "'. Expected '1'.");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -122,6 +131,7 @@ public class UserManagementServiceImpl implements UserManagementService {
                     userProfile.setRoleName(roleName);
                 }
                 String userGA = getUserGrantingAuthority(token, userProfile.getId());
+                userProfile.setGrantingAuthority(userGA);
             }
         });
     }
