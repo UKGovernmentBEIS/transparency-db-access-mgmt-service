@@ -8,6 +8,9 @@ public class AccessManagementConstant {
             "Granting Authority Approver","Granting Authority Encoder"};
     public static String ROLES[]= {"BEIS Administrator","Granting Authority Administrator",
             "Granting Authority Approver"};
+    public static String AAD_ROLE_NAMES[]={"BEIS Administrators",
+            "GrantingAuthorityAdministrators","GrantingAuthorityApprovers",
+            "GrantingAuthorityEncoders"};
     public static String GA_ADMIN_ROLE="Granting Authority Administrator";
     public static String GA_APPROVER_ROLE="Granting Authority Approver";
     public static String GA_ENCODER_ROLE="Granting Authority Encoder";
