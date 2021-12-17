@@ -41,4 +41,6 @@ public class UserResponse {
 
     @JsonProperty
     private InviteUserResponse invitedUser;
+
+    private String grantingAuthority;
   }
