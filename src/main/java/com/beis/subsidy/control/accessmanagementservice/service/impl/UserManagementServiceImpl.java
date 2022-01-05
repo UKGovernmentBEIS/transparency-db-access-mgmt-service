@@ -10,11 +10,9 @@ import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.CreateUserInGroupRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.InvitationRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateUserRequest;
-import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserRolesResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserRoleResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.*;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
+import com.beis.subsidy.control.accessmanagementservice.utils.AccessManagementConstant;
 import feign.FeignException;
 import feign.Response;
 import lombok.extern.slf4j.Slf4j;
@@ -86,20 +84,55 @@ public class UserManagementServiceImpl implements UserManagementService {
         return userDetailsResponse;
     }
 
+    public String getUserGrantingAuthority(String token, String uid){
+        String userGrantingAuthority = "";
+        Response response = null;
+        Object clazz;
+        UserGroupsResponse userGroupsResponse = null;
+
+        try {
+            response = graphAPIFeignClient.getUserGroups("Bearer " + token,uid);
+            if (response.status() == 200) {
+                clazz = UserGroupsResponse.class;
+                ResponseEntity<Object> responseResponseEntity = toResponseEntity(response, clazz);
+                userGroupsResponse = (UserGroupsResponse) responseResponseEntity.getBody();
+            }
+            List <UserGroupResponse> userGroups = userGroupsResponse.getUserGroups();
+
+            for (String role : AccessManagementConstant.AAD_ROLE_NAMES) {
+                userGroups.removeIf(userGroup -> Objects.equals(userGroup.getDisplayName(), role));
+            }
+
+            if(userGroups.size() == 1){
+                userGrantingAuthority = userGroups.get(0).getDisplayName();
+            }else{
+                throw new InvalidRequestException("Group list is size '" + userGroups.size() + "'. Expected '1'.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return userGrantingAuthority;
+    }
+
     public  void mapGroupInfoToUser(String token, List<UserResponse> userProfiles) {
 
        // final UserRolesResponse userResponse;
         log.info("{}::before calling toGraph Api in the mapGroupInfoToUser",loggingComponentName);
         userProfiles.forEach(userProfile -> {
             UserRolesResponse userRolesResponse = getUserGroup(token,userProfile.getId());
-            String roleName = userRolesResponse.getUserRoles().stream().filter(
-                    userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
-                    .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get();
-           if(!StringUtils.isEmpty(roleName)) {
-
-               userProfile.setRoleName(roleName);
-           }
-
+            if(userRolesResponse.getUserRoles().isEmpty()){
+                userProfile.setRoleName("Azure-User");
+            }else{
+                String roleName = userRolesResponse.getUserRoles().stream().filter(
+                        userRole -> userRole.getPrincipalType().equalsIgnoreCase("GROUP"))
+                        .map(UserRoleResponse::getPrincipalDisplayName).findFirst().get();
+                if(!StringUtils.isEmpty(roleName)) {
+                    userProfile.setRoleName(roleName);
+                }
+                String userGA = getUserGrantingAuthority(token, userProfile.getId());
+                userProfile.setGrantingAuthority(userGA);
+            }
         });
     }
 
@@ -246,6 +279,9 @@ public class UserManagementServiceImpl implements UserManagementService {
                 ResponseEntity<Object> responseResponseEntity = toResponseEntity(response, clazz);
                 userDetailsResponse
                         = (UserDetailsResponse) responseResponseEntity.getBody();
+                if (Objects.nonNull(userDetailsResponse)) {
+                    mapGroupInfoToUser(token,userDetailsResponse.getUserProfiles());
+                }
 
             } else if (response.status() == 404) {
                 throw new SearchResultNotFoundException("get users not found");

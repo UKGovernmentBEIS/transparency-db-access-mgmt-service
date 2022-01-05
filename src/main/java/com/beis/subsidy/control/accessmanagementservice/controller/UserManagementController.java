@@ -33,6 +33,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 import java.util.Objects;
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -194,6 +195,11 @@ public class UserManagementController {
         SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         UserDetailsResponse response =  userManagementService.getAllUsers(access_token);
+
+        List <UserResponse> userList = response.getUserProfiles();
+
+        userList.removeIf(user -> Objects.equals(user.getRoleName(), "Azure-User"));
+
         return ResponseEntity.status(200).body(response);
     }
     
