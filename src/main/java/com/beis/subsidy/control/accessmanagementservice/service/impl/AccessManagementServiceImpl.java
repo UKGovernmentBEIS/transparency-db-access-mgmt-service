@@ -178,6 +178,10 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         }
         if (!StringUtils.isEmpty(awardUpdateRequest.getStatus())) {
             award.setStatus(awardUpdateRequest.getStatus());
+            if ("Published".equals(awardUpdateRequest.getStatus()) &&
+                    LocalDate.of(1970,1,1).equals(award.getPublishedAwardDate())) {
+                award.setPublishedAwardDate(LocalDate.now());
+            }
         }
         award.setLastModifiedTimestamp(LocalDate.now());
         if (!StringUtils.isEmpty(awardUpdateRequest.getSubsidyAmountExact())) {
