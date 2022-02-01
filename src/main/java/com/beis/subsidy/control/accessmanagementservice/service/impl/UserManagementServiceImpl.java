@@ -110,7 +110,7 @@ public class UserManagementServiceImpl implements UserManagementService {
             if(userGroups.size() == 1){
                 userGrantingAuthority = userGroups.get(0).getDisplayName();
             }else{
-                throw new InvalidRequestException("Group list is size '" + userGroups.size() + "'. Expected '1'.");
+                throw new InvalidRequestException("Group list is size '" + userGroups.size() + "'. Expected '1'. UID: " + uid);
             }
         } catch (Exception e) {
             e.printStackTrace();
