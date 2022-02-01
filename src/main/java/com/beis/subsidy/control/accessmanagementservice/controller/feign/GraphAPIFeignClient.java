@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.*;
 @FeignClient(name = "GraphAPIFeignClient", url = "${graphApiUrl}")
 public interface GraphAPIFeignClient {
 
-    @GetMapping(value = "/v1.0/users")
-    @RequestLine("GET v1.0/users")
+    @GetMapping(value = "/v1.0/users?$top=999")
+    @RequestLine("GET v1.0/users?$top=999")
     @Headers({"Authorization: {authorization}","Content-Type: application/json"})
     Response getAllUserProfiles(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation);
 
