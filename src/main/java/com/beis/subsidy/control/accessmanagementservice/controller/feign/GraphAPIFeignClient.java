@@ -72,4 +72,18 @@ public interface GraphAPIFeignClient {
     Response getUserGroups(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
                            @PathVariable("id")  String id);
 
+    @GetMapping(value = "/v1.0/groups/{groupId}/members/$count")
+    @RequestLine("GET /v1.0/groups/{groupId}/members/$count")
+    @Headers({"Authorization: {authorization}","Content-Type: text/plain"})
+    Response countUsersByGroupId(@RequestHeader(HttpHeaders.AUTHORIZATION)String authorisation,
+                               @PathVariable("groupId")  String groupId,
+                                 @RequestHeader("consistencyLevel") String consistencyLevel
+    );
+
+    @GetMapping(value = "/v1.0/groups?$filter=displayName eq '{displayName}'")
+    @RequestLine("GET /v1.0/groups?$filter=displayName eq '{displayName}'")
+    @Headers({"Authorization: {authorization}","Content-Type: application/json"})
+    Response getGroupByDisplayName(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
+                               @PathVariable("displayName")  String displayName);
+
 }
