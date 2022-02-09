@@ -13,8 +13,10 @@ import com.beis.subsidy.control.accessmanagementservice.request.UpdateUserReques
 import com.beis.subsidy.control.accessmanagementservice.response.*;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.AccessManagementConstant;
+import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
 import feign.FeignException;
 import feign.Response;
+import feign.Util;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +27,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Objects;
 
@@ -106,7 +110,7 @@ public class UserManagementServiceImpl implements UserManagementService {
             if(userGroups.size() == 1){
                 userGrantingAuthority = userGroups.get(0).getDisplayName();
             }else{
-                throw new InvalidRequestException("Group list is size '" + userGroups.size() + "'. Expected '1'.");
+                throw new InvalidRequestException("Group list is size '" + userGroups.size() + "'. Expected '1'. UID: " + uid);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -353,5 +357,81 @@ public class UserManagementServiceImpl implements UserManagementService {
             throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
         }
         return response.status();
+    }
+
+    @Override
+    public UserCountResponse getAllUserCounts(String token){
+        UserCountResponse userCountResponse = new UserCountResponse();
+        int beisAdminCount = 0, adminCount = 0, approverCount = 0, encoderCount = 0, totalCount = 0;
+
+            for(String aadRole: AccessManagementConstant.AAD_ROLE_NAMES) {
+                String id = getGroupIdFromDisplayName(token, aadRole);
+                switch(aadRole){ //BEISAdministrators", "GrantingAuthorityAdministrators","GrantingAuthorityApprovers", "GrantingAuthorityEncoders
+                    case "BEISAdministrators":
+                        beisAdminCount = getGroupUserCount(token, id);
+                        break;
+                    case "GrantingAuthorityAdministrators":
+                        adminCount = getGroupUserCount(token, id);
+                        break;
+                    case "GrantingAuthorityApprovers":
+                        approverCount = getGroupUserCount(token, id);
+                        break;
+                    case "GrantingAuthorityEncoders":
+                        encoderCount = getGroupUserCount(token, id);
+                        break;
+                }
+            }
+        totalCount = beisAdminCount + adminCount + approverCount + encoderCount;
+
+        userCountResponse.setAdminCount(beisAdminCount + adminCount);
+        userCountResponse.setEncoderCount(encoderCount);
+        userCountResponse.setApproverCount(approverCount);
+        userCountResponse.setTotalCount(totalCount);
+
+        return userCountResponse;
+    }
+
+    public int getGroupUserCount(String token, String id){
+        int userCount = -1;
+
+        try{
+            Response response = graphAPIFeignClient.countUsersByGroupId("Bearer " + token, id,"eventual");
+            if (response.status() == 200) {
+                try {
+                    String body = Util.toString(response.body().asReader(Charset.defaultCharset()));
+                    if(SearchUtils.isNumeric(body)){
+                        userCount = Integer.parseInt(body);
+                    }
+                }catch(IOException ex){
+                    log.error("{}:: IO Exception in getGroupUserCount:: message {}",
+                            loggingComponentName, ex.getMessage());
+                }
+            }
+        }catch (FeignException ex){
+            log.error("{}:: Graph Api failed getGroupUserCount:: status code {} & message {}",
+                    loggingComponentName, ex.status(), ex.getMessage());
+            throw new AccessManagementException(HttpStatus.valueOf(ex.status()), "Graph Api failed");
+        }
+
+        return userCount;
+    }
+
+    public String getGroupIdFromDisplayName(String token, String displayName){
+        String id = "";
+        Response response = null;
+        UserGroupsResponse userGroupsResponse;
+        Object clazz;
+
+        response = graphAPIFeignClient.getGroupByDisplayName("Bearer " + token, displayName);
+        if (response.status() == 200) {
+            ResponseEntity<Object> responseResponseEntity = toResponseEntity(response, UserGroupsResponse.class);
+            userGroupsResponse = (UserGroupsResponse) responseResponseEntity.getBody();
+            List<UserGroupResponse> userGroups = userGroupsResponse.getUserGroups();
+
+            if (!userGroups.isEmpty()) {
+                id = userGroups.get(0).getId();
+            }
+        }
+        return id;
     }
 }

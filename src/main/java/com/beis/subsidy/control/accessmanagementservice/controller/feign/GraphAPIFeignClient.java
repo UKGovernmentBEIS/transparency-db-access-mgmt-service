@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.*;
 @FeignClient(name = "GraphAPIFeignClient", url = "${graphApiUrl}")
 public interface GraphAPIFeignClient {
 
-    @GetMapping(value = "/v1.0/users")
-    @RequestLine("GET v1.0/users")
+    @GetMapping(value = "/v1.0/users?$top=999")
+    @RequestLine("GET v1.0/users?$top=999")
     @Headers({"Authorization: {authorization}","Content-Type: application/json"})
     Response getAllUserProfiles(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation);
 
@@ -71,5 +71,19 @@ public interface GraphAPIFeignClient {
     @Headers({"Authorization: {authorization}","Content-Type: application/json"})
     Response getUserGroups(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
                            @PathVariable("id")  String id);
+
+    @GetMapping(value = "/v1.0/groups/{groupId}/members/$count")
+    @RequestLine("GET /v1.0/groups/{groupId}/members/$count")
+    @Headers({"Authorization: {authorization}","Content-Type: text/plain"})
+    Response countUsersByGroupId(@RequestHeader(HttpHeaders.AUTHORIZATION)String authorisation,
+                               @PathVariable("groupId")  String groupId,
+                                 @RequestHeader("consistencyLevel") String consistencyLevel
+    );
+
+    @GetMapping(value = "/v1.0/groups?$filter=displayName eq '{displayName}'")
+    @RequestLine("GET /v1.0/groups?$filter=displayName eq '{displayName}'")
+    @Headers({"Authorization: {authorization}","Content-Type: application/json"})
+    Response getGroupByDisplayName(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
+                               @PathVariable("displayName")  String displayName);
 
 }

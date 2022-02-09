@@ -3,6 +3,7 @@ package com.beis.subsidy.control.accessmanagementservice.service;
 import com.beis.subsidy.control.accessmanagementservice.request.AddUserRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.InvitationRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateUserRequest;
+import com.beis.subsidy.control.accessmanagementservice.response.UserCountResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
 import com.beis.subsidy.control.accessmanagementservice.response.UserRolesResponse;
@@ -24,4 +25,6 @@ public interface UserManagementService {
     UserResponse inviteUser(String access_token, InvitationRequest invitationRequest);
 
     int  updateUser(String access_token, String userId, UpdateUserRequest request);
+
+    UserCountResponse getAllUserCounts(String access_token);
 }
