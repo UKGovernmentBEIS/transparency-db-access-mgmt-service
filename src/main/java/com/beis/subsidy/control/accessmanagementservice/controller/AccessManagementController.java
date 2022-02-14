@@ -256,8 +256,12 @@ public class AccessManagementController {
         LocalDate endDate =null;
         if(!StringUtils.isEmpty(searchInput.getSearchStartDate()) &&
                 !StringUtils.isEmpty(searchInput.getSearchEndDate())) {
-        	 startDate =LocalDate.parse(searchInput.getSearchStartDate());
-        	 endDate =LocalDate.parse(searchInput.getSearchEndDate());
+                 try{
+                startDate =LocalDate.parse(searchInput.getSearchStartDate());
+                endDate =LocalDate.parse(searchInput.getSearchEndDate());
+            }catch(Exception e) {
+                 return new ResponseEntity<AuditLogsResultsResponse>(new AuditLogsResultsResponse(), HttpStatus.NOT_FOUND);
+            }
         }
 
       AuditLogsResultsResponse searchResults = accessManagementService.findMatchingAuditLogDetails(userPrincipleResp,
