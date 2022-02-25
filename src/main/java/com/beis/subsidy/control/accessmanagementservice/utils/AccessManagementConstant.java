@@ -19,6 +19,7 @@ public class AccessManagementConstant {
 
     public static String SCHEME_ACTIVE ="Active";
     public static String SCHEME_INACTIVE ="Inactive";
+    public static String SCHEME_DELETED ="Deleted";
 
     public static String AWARD_AWAITING_APPROVAL ="Awaiting approval";
     public static String AWARD_REJECTED ="Rejected";
