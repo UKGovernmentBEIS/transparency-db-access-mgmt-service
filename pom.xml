@@ -131,16 +131,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-        <groupId>uk.gov.service.notify</groupId>
-        <artifactId>notifications-java-client</artifactId>
-        <version>3.17.0-RELEASE</version>
-        <type>jar</type>
-    </dependency>
+			<groupId>uk.gov.service.notify</groupId>
+			<artifactId>notifications-java-client</artifactId>
+			<version>3.17.0-RELEASE</version>
+			<type>jar</type>
+    	</dependency>
 	</dependencies>
 
 	<build>
