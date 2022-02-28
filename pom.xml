@@ -8,6 +8,10 @@
 		<version>2.3.5.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+
+	<scm>
+		<developerConnection>scm:git:https://github.com/UKGovernmentBEIS/transparency-db-access-mgmt-service/</developerConnection>
+	</scm>
 	<groupId>com.beis.subsidy.control.accessmanagementservice</groupId>
 	<artifactId>access-management-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -144,6 +148,11 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>3.0.0-M5</version>
 			</plugin>
 			<!--<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
