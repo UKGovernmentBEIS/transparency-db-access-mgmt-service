@@ -60,7 +60,7 @@ public class UserManagementControllerTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        File upFile = new File("src\\test\\java\\com\\beis\\subsidy\\control\\accessmanagementservice\\data\\user_principle.json");
+        File upFile = new File("src/test/java/com/beis/subsidy/control/accessmanagementservice/data/user_principle.json");
 
         ObjectMapper mapper = new ObjectMapper();
 
