@@ -7,11 +7,7 @@ import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequest
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
 import com.beis.subsidy.control.accessmanagementservice.repository.AuditLogsRepository;
 import com.beis.subsidy.control.accessmanagementservice.request.*;
-import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserDetailsResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserRoleResponse;
-import com.beis.subsidy.control.accessmanagementservice.response.UserRolesResponse;
+import com.beis.subsidy.control.accessmanagementservice.response.*;
 import com.beis.subsidy.control.accessmanagementservice.service.UserManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.EmailUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
@@ -33,6 +29,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 import java.util.Objects;
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -194,6 +191,23 @@ public class UserManagementController {
         SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
         String access_token = getBearerToken();
         UserDetailsResponse response =  userManagementService.getAllUsers(access_token);
+
+        List <UserResponse> userList = response.getUserProfiles();
+
+        userList.removeIf(user -> Objects.equals(user.getRoleName(), "Azure-User"));
+
+        return ResponseEntity.status(200).body(response);
+    }
+
+    @GetMapping(
+            value = "/countUsers",
+            produces =  APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Object> retrieveAllUserCounts(@RequestHeader("userPrinciple") HttpHeaders userPrinciple){
+        SearchUtils.adminRoleValidFromUserPrincipleObject(objectMapper,userPrinciple);
+        String access_token = getBearerToken();
+        UserCountResponse response = userManagementService.getAllUserCounts(access_token);
+
         return ResponseEntity.status(200).body(response);
     }
     

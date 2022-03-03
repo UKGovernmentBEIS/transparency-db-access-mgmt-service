@@ -178,6 +178,10 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         }
         if (!StringUtils.isEmpty(awardUpdateRequest.getStatus())) {
             award.setStatus(awardUpdateRequest.getStatus());
+            if ("Published".equals(awardUpdateRequest.getStatus()) &&
+                    LocalDate.of(1970,1,1).equals(award.getPublishedAwardDate())) {
+                award.setPublishedAwardDate(LocalDate.now());
+            }
         }
         award.setLastModifiedTimestamp(LocalDate.now());
         if (!StringUtils.isEmpty(awardUpdateRequest.getSubsidyAmountExact())) {
@@ -325,6 +329,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         int totalSubsidyScheme = subsidyMeasuresList.size();
         int totalActiveScheme = 0;
         int totalInactiveScheme = 0;
+        int totalDeletedScheme = 0;
 
         if(subsidyMeasuresList != null && subsidyMeasuresList.size() > 0){
             for(SubsidyMeasure sm : subsidyMeasuresList){
@@ -334,12 +339,16 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SCHEME_INACTIVE)){
                     totalInactiveScheme++;
                 }
+                if(sm.getStatus().equalsIgnoreCase(AccessManagementConstant.SCHEME_DELETED)){
+                    totalDeletedScheme++;
+                }
             }
         }
         Map<String, Integer> smUserActivityCount = new HashMap<>();
         smUserActivityCount.put("totalSubsidyScheme",totalSubsidyScheme);
         smUserActivityCount.put("totalActiveScheme",totalActiveScheme);
         smUserActivityCount.put("totalInactiveScheme",totalInactiveScheme);
+        smUserActivityCount.put("totalDeletedScheme",totalDeletedScheme);
         return smUserActivityCount;
     }
 

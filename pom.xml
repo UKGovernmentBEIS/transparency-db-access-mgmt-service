@@ -8,6 +8,10 @@
 		<version>2.3.5.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+
+	<scm>
+		<developerConnection>scm:git:https://github.com/UKGovernmentBEIS/transparency-db-access-mgmt-service/</developerConnection>
+	</scm>
 	<groupId>com.beis.subsidy.control.accessmanagementservice</groupId>
 	<artifactId>access-management-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -127,16 +131,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-        <groupId>uk.gov.service.notify</groupId>
-        <artifactId>notifications-java-client</artifactId>
-        <version>3.17.0-RELEASE</version>
-        <type>jar</type>
-    </dependency>
+			<groupId>uk.gov.service.notify</groupId>
+			<artifactId>notifications-java-client</artifactId>
+			<version>3.17.0-RELEASE</version>
+			<type>jar</type>
+    	</dependency>
 	</dependencies>
 
 	<build>
@@ -144,6 +143,14 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>3.0.0-M5</version>
+				<configuration>
+					<tagNameFormat>release-@{project.version}</tagNameFormat>
+				</configuration>
 			</plugin>
 			<!--<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
