@@ -27,6 +27,7 @@ public class UpdateAwardDetailsRequestTest {
         request.setNationalIdType("idType");
         request.setGrantingAuthorityName("gaName");
         request.setSubsidyInstrument("sInstrument");
+        request.setPublishedAwardDate("01/01/2022");
         assertThat(request).isNotNull();
         assertThat(request.getOrgSize()).isEqualTo("small org");
         assertThat(request.getBeneficiaryName()).isEqualTo("bname");
@@ -43,6 +44,7 @@ public class UpdateAwardDetailsRequestTest {
         assertThat(request.getSubsidyInstrument()).isEqualTo("sInstrument");
         assertThat(request.getSubsidyObjective()).isEqualTo("sobjective");
         assertThat(request.getReason()).isEqualTo("reason");
+        assertThat(request.getPublishedAwardDate()).isEqualTo("01/01/2022");
 
     }
 }
