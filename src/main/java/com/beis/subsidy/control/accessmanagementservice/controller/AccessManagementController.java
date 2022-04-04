@@ -4,7 +4,9 @@ import com.beis.subsidy.control.accessmanagementservice.controller.feign.GraphAP
 import com.beis.subsidy.control.accessmanagementservice.exception.AccessTokenException;
 import com.beis.subsidy.control.accessmanagementservice.exception.InvalidRequestException;
 import com.beis.subsidy.control.accessmanagementservice.exception.SearchResultNotFoundException;
+import com.beis.subsidy.control.accessmanagementservice.model.Award;
 import com.beis.subsidy.control.accessmanagementservice.repository.AuditLogsRepository;
+import com.beis.subsidy.control.accessmanagementservice.repository.AwardRepository;
 import com.beis.subsidy.control.accessmanagementservice.request.AuditSearchRequest;
 import com.beis.subsidy.control.accessmanagementservice.request.UpdateAwardDetailsRequest;
 import com.beis.subsidy.control.accessmanagementservice.response.AccessTokenResponse;
@@ -14,6 +16,7 @@ import com.beis.subsidy.control.accessmanagementservice.response.SearchResults;
 import com.beis.subsidy.control.accessmanagementservice.response.SearchSubsidyResultsResponse;
 import com.beis.subsidy.control.accessmanagementservice.service.AccessManagementService;
 import com.beis.subsidy.control.accessmanagementservice.utils.AccessManagementConstant;
+import com.beis.subsidy.control.accessmanagementservice.utils.PermissionUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils;
 import com.beis.subsidy.control.accessmanagementservice.utils.UserPrinciple;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -38,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import java.time.LocalDate;
@@ -65,6 +69,9 @@ public class AccessManagementController {
 
     @Autowired
     AuditLogsRepository auditLogsRepository;
+
+    @Autowired
+    AwardRepository awardRepository;
 
     static final String BEARER = "Bearer ";
 
@@ -168,7 +175,8 @@ public class AccessManagementController {
     )
     public ResponseEntity<Object> updateSubsidyAward(@RequestHeader("userPrinciple") HttpHeaders userPrinciple,
                                                      @Valid @RequestBody UpdateAwardDetailsRequest awardUpdateRequest,
-                                                     @PathVariable("awardNumber") Long awardNumber) {
+                                                     @PathVariable("awardNumber") Long awardNumber,
+                                                     HttpServletResponse response) {
 
         log.info("{}:: Before calling updateSubsidyAward", loggingComponentName);
         UserPrinciple userPrincipleResp = SearchUtils.validateAdminGAApproverRoleFromUpObj(objectMapper,userPrinciple);
@@ -176,6 +184,15 @@ public class AccessManagementController {
                 || StringUtils.isEmpty(userPrincipleResp.getUserName())) {
               throw new InvalidRequestException("Bad Request AwardId is null or requestBody is null or username null");
          }
+
+        if (!PermissionUtils.userHasRole(userPrincipleResp, AccessManagementConstant.BEIS_ADMIN_ROLE)) {
+            Award award = awardRepository.findByAwardNumber(awardNumber);
+            if (!PermissionUtils.userPrincipleContainsId(userPrinciple, award.getGrantingAuthority().getAzureGroupId())){
+                response.setStatus(403);
+                log.error("User " + userPrincipleResp.getUserName() + " does not have the rights to update award: " + awardNumber);
+                return null;
+            }
+        }
          String accessToken= getBearerToken();
 
         ResponseEntity<Object> objectResponseEntity =  accessManagementService.updateAwardDetailsByAwardId(awardNumber,
