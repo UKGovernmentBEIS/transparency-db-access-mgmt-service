@@ -136,6 +136,10 @@
 			<version>3.17.0-RELEASE</version>
 			<type>jar</type>
     	</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
