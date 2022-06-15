@@ -26,7 +26,7 @@ stages:
             displayName: 'Maven Package'
             inputs:
               mavenPomFile: 'pom.xml'
-              mavenOptions: '-Xmx3072m'
+              mavenOptions: '-Xmx3072m -Dspring.flyway.enabled=false'
               javaHomeOption: 'JDKVersion'
               jdkVersionOption: '1.8'
               jdkArchitectureOption: 'x64'
