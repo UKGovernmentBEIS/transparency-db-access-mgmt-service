@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public interface GraphAPIFeignClient {
 
     @GetMapping(value = "/v1.0/users?$top=999")
-    @RequestLine("GET v1.0/users?$top=999")
+    @RequestLine("GET v1.0/users")
     @Headers({"Authorization: {authorization}","Content-Type: application/json"})
     Response getAllUserProfiles(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation);
 
@@ -30,7 +30,7 @@ public interface GraphAPIFeignClient {
     Response deleteUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
                         @PathVariable("userId")  String userId);
 
-    @GetMapping(value = "/v1.0/groups/{groupId}/members")
+    @GetMapping(value = "/v1.0/groups/{groupId}/members?$top=999")
     @RequestLine("GET /v1.0/groups/{groupId}/members")
     @Headers({"Authorization: {authorization}","Content-Type: application/json"})
     Response getUsersByGroupId(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorisation,
