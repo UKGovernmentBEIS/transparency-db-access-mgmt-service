@@ -438,12 +438,14 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 .where(
                         SearchUtils.checkNullOrEmptyString(searchName)
                                 ? null :AwardSpecificationUtils.subsidyMeasureTitle(searchName.trim())
-                                .or(searchName != null && searchName.matches("[0-9]+") ?
+                                .or(searchName.matches("[0-9]+") ?
                                         AwardSpecificationUtils.awardByNumber(Long.valueOf(searchName)):null)
                                 .or(SearchUtils.checkNullOrEmptyString(searchName)
                                         ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
                                 .or(SearchUtils.checkNullOrEmptyString(searchName)
-                                        ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim())))
+                                        ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim()))
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.subsidyNumberLike(searchName.toUpperCase().trim())))
                 // status from input parameter
                 .and(SearchUtils.checkNullOrEmptyString(status)
                         ? null : AwardSpecificationUtils.awardByStatus(status.trim()));
