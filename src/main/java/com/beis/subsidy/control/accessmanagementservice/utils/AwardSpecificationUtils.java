@@ -45,6 +45,17 @@ public final class AwardSpecificationUtils {
 	}
 
 	/**
+	 * Searches all SC numbers containing the searchNumber input
+	 * @param searchNumber - the input search string from the user
+	 * @return Specification<Award> - Specification for Award
+	 */
+
+	public static Specification<Award> subsidyNumberLike(String searchNumber) {
+		return (root, query, builder) -> builder.like(builder.lower(root.get("subsidyMeasure").get("scNumber")),
+				builder.lower(builder.literal("%" + searchNumber.trim() + "%")));
+	}
+
+	/**
 	 * To check contains operations
 	 * @param expression - input string
 	 * @return - message format with like expression
