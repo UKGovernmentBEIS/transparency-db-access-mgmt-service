@@ -98,6 +98,7 @@ public class AccessManagementServiceImplTest {
         subsidyMeasure.setCreatedBy("SYSTEM");
         subsidyMeasure.setApprovedBy("SYSTEM");
         subsidyMeasure.setLastModifiedTimestamp(LocalDate.now());
+        subsidyMeasure.setHasNoEndDate(false);
         // Legal Basis text
         LegalBasis legalBasis = new LegalBasis();
         legalBasis.setLegalBasisText("legal text");
