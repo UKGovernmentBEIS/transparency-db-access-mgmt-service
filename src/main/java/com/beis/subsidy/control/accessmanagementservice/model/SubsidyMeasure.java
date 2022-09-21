@@ -79,4 +79,7 @@ public class SubsidyMeasure {
 	@UpdateTimestamp
 	@Column(name = "LAST_MODIFIED_TIMESTAMP")
 	private LocalDate lastModifiedTimestamp;
+
+	@Column(name = "HAS_NO_END_DATE")
+	private boolean hasNoEndDate;
 }
