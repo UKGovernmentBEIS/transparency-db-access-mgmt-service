@@ -38,6 +38,9 @@ public class SubsidyMeasureResponse {
     @JsonProperty
     private String lastModifiedDate;
 
+    @JsonProperty
+    private LocalDate confirmationDate;
+
 
     public SubsidyMeasureResponse(SubsidyMeasure subsidyMeasure) {
         this.scNumber = subsidyMeasure.getScNumber();
@@ -48,6 +51,7 @@ public class SubsidyMeasureResponse {
         this.budget = subsidyMeasure.getBudget();
         this.gaName = subsidyMeasure.getGrantingAuthority().getGrantingAuthorityName();
         this.lastModifiedDate = SearchUtils.dateToFullMonthNameInDate(subsidyMeasure.getLastModifiedTimestamp());
+        this.confirmationDate = subsidyMeasure.getConfirmationDate();
     }
 
 }
