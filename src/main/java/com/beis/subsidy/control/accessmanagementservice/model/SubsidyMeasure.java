@@ -1,7 +1,5 @@
 package com.beis.subsidy.control.accessmanagementservice.model;
 
-
-import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.Getter;
