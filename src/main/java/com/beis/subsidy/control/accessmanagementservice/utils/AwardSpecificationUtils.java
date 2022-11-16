@@ -4,6 +4,7 @@ import com.beis.subsidy.control.accessmanagementservice.model.AuditLogs;
 import com.beis.subsidy.control.accessmanagementservice.model.Award;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.JoinType;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 
@@ -30,7 +31,7 @@ public final class AwardSpecificationUtils {
 	 */
 	public static Specification<Award> subsidyMeasureTitle(String subsidyMeasureTitle) {
 
-		return (root, query, builder) -> builder.like(builder.lower(root.get("subsidyMeasure").get("subsidyMeasureTitle")),
+		return (root, query, builder) -> builder.like(builder.lower(root.join("subsidyMeasure", JoinType.LEFT).get("subsidyMeasureTitle")),
 				builder.lower(builder.literal("%" + subsidyMeasureTitle.trim() + "%")));
 	}
 
@@ -51,7 +52,7 @@ public final class AwardSpecificationUtils {
 	 */
 
 	public static Specification<Award> subsidyNumberLike(String searchNumber) {
-		return (root, query, builder) -> builder.like(builder.lower(root.get("subsidyMeasure").get("scNumber")),
+		return (root, query, builder) -> builder.like(builder.lower(root.join("subsidyMeasure", JoinType.LEFT).get("scNumber")),
 				builder.lower(builder.literal("%" + searchNumber.trim() + "%")));
 	}
 
