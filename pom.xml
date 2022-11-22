@@ -82,7 +82,7 @@
 			<!-- Required to use PATCH -->
 			<groupId>io.github.openfeign</groupId>
 			<artifactId>feign-httpclient</artifactId>
-			<version>11.0</version>
+			<version>12.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
