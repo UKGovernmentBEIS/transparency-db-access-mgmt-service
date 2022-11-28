@@ -1,6 +1,5 @@
 package com.beis.subsidy.control.accessmanagementservice.model;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.Getter;
@@ -85,4 +84,11 @@ public class SubsidyMeasure {
 
 	@Column (name = "SUBSIDY_SCHEME_DESCRIPTION")
 	private String subsidySchemeDescription;
+
+	@Column(name = "CONFIRMATION_DATE")
+	private LocalDate confirmationDate;
+
+	@Column(name = "SPENDING_SECTORS")
+	private String spendingSectors;
+
 }
