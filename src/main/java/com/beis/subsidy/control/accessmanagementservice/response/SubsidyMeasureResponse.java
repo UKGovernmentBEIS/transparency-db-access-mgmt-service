@@ -41,6 +41,9 @@ public class SubsidyMeasureResponse {
     @JsonProperty
     private LocalDate confirmationDate;
 
+    @JsonProperty
+    private String maximumAmountUnderScheme;
+
 
     public SubsidyMeasureResponse(SubsidyMeasure subsidyMeasure) {
         this.scNumber = subsidyMeasure.getScNumber();
@@ -52,6 +55,7 @@ public class SubsidyMeasureResponse {
         this.gaName = subsidyMeasure.getGrantingAuthority().getGrantingAuthorityName();
         this.lastModifiedDate = SearchUtils.dateToFullMonthNameInDate(subsidyMeasure.getLastModifiedTimestamp());
         this.confirmationDate = subsidyMeasure.getConfirmationDate();
+        this.maximumAmountUnderScheme = subsidyMeasure.getMaximumAmountUnderScheme();
     }
 
 }
