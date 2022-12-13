@@ -57,8 +57,13 @@ public class AwardResponse {
         this.gaName = award.getGrantingAuthority().getGrantingAuthorityName();
         this.lastModifiedDate = SearchUtils.dateToFullMonthNameInDate(award.getLastModifiedTimestamp());
         this.subsidyObjective = award.getSubsidyObjective();
-        this.subsidyMeasureTitle = award.getSubsidyMeasure().getSubsidyMeasureTitle();
-        this.scNumber= award.getSubsidyMeasure().getScNumber();
+        if(award.getSubsidyMeasure() == null) {
+            this.subsidyMeasureTitle = "NA";
+            this.scNumber = "NA";
+        }else{
+            this.subsidyMeasureTitle = award.getSubsidyMeasure().getSubsidyMeasureTitle();
+            this.scNumber = award.getSubsidyMeasure().getScNumber();
+        }
         this.subsidyInstrument= award.getSubsidyInstrument();
         this.beneficiaryName= award.getBeneficiary().getBeneficiaryName();
         this.reason=award.getReason();

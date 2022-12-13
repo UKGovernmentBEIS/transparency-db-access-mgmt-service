@@ -111,7 +111,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         Long gaId = getGrantingAuthorityIdByName(userPrincipleObj.getGrantingAuthorityGroupName());
         if(gaId == null || gaId <= 0){
             log.error("{}::Inside if method of findGAAdminDashboardData", loggingComponentName);
-            throw new UnauthorisedAccessException("Invalid granting authority name");
+            throw new UnauthorisedAccessException("Invalid public authority name");
         }
 
         List<Award> allAwardList = awardRepository.findAll(getAwardSpecification(gaId));
@@ -283,7 +283,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
 
                 Long gaId = getGrantingAuthorityIdByName(userPrinciple.getGrantingAuthorityGroupName());
                 if(gaId == null || gaId <= 0){
-                    throw new UnauthorisedAccessException("Invalid granting authority name");
+                    throw new UnauthorisedAccessException("Invalid public authority name");
                 }
                 pageAwards = awardRepository.findAll(getAwardSpecification(gaId),pagingSortAwards);
                 awardResults = pageAwards.getContent();
