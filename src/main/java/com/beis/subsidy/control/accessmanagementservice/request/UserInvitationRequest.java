@@ -20,16 +20,20 @@ public class UserInvitationRequest {
 
     private Set<String> grpRoleIds;
 
+    private boolean reInvite;
+
     @JsonCreator
     public UserInvitationRequest(
             @JsonProperty("invitedUserEmailAddress") String invitedUserEmailAddress,
             @JsonProperty("inviteRedirectUrl") String inviteRedirectUrl,
             @JsonProperty("sendInvitationMessage") boolean sendInvitationMessage,
-            @JsonProperty("grpRoleIds") Set<String> grpRoleIds) {
+            @JsonProperty("grpRoleIds") Set<String> grpRoleIds,
+            @JsonProperty("reInvite") boolean reInvite) {
 
         this.inviteRedirectUrl = inviteRedirectUrl;
         this.invitedUserEmailAddress = invitedUserEmailAddress;
         this.sendInvitationMessage =  sendInvitationMessage;
         this.grpRoleIds = grpRoleIds;
+        this.reInvite = reInvite;
     }
 }
