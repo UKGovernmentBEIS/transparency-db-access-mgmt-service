@@ -79,7 +79,12 @@ public class UserManagementController {
         request.getGrpRoleIds().forEach(roleId -> {
             userManagementService.createGroupForUser(access_token, roleId, response.getInvitedUser().getId());
         });
-        SearchUtils.saveAuditLog(userPrincipleObj,"Create User","User Created",response.getId(),auditLogsRepository);
+
+        if(!request.isReInvite()) {
+            SearchUtils.saveAuditLog(userPrincipleObj, "Create User", "User Created", response.getId(), auditLogsRepository);
+        }else{
+            SearchUtils.saveAuditLog(userPrincipleObj, "Invite Resent", "Invite resent to user: " + response.getInvitedUser().getId(), response.getInvitedUser().getId(), auditLogsRepository);
+        }
         return ResponseEntity.status(201).body(response);
     }
 

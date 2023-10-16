@@ -43,4 +43,10 @@ public class UserResponse {
     private InviteUserResponse invitedUser;
 
     private String grantingAuthority;
+
+    @JsonProperty
+    private String externalUserState;
+
+    @JsonProperty
+    private String inviteRedeemUrl;
   }
