@@ -77,10 +77,10 @@ public class SearchUtils {
 	 */
 	public static String formatedFullAmountRange(String amountRange) {
 		String finalAmtRange = "NA";
+		amountRange = amountRange.toUpperCase();
 		if (StringUtils.isNotBlank(amountRange) &&
 				!(amountRange.equalsIgnoreCase("NA") || amountRange.contains("N/A")
-						|| amountRange.contains("n/a"))
-				&& !amountRange.endsWith(">")) {
+				&& !amountRange.endsWith(">"))) {
 
 			StringBuilder format = new StringBuilder();
 			String[] tokens = amountRange.split("-");
