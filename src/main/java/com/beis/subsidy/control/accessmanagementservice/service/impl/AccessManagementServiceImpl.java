@@ -466,7 +466,9 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                                 .or(SearchUtils.checkNullOrEmptyString(searchName)
                                         ? null :AwardSpecificationUtils.grantingAuthorityName(searchName.trim()))
                                 .or(SearchUtils.checkNullOrEmptyString(searchName)
-                                        ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim())))
+                                        ? null :AwardSpecificationUtils.beneficiaryName(searchName.trim()))
+                                .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                        ? null :AwardSpecificationUtils.subsidyNumberLike(searchName.toUpperCase().trim())))
                 .and(SearchUtils.checkNullOrEmptyString(gaName) ? null :
                         AwardSpecificationUtils.grantingAuthorityName(gaName.trim()))
                 .and(SearchUtils.checkNullOrEmptyString(status)
