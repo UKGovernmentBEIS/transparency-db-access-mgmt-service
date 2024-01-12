@@ -5,9 +5,9 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
 
 trigger:
-    tags:
-      include:
-        - *
+  tags:
+    include:
+      - '*'
 
 pr:
   - master
