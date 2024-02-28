@@ -60,7 +60,7 @@ stages:
   - stage:
     displayName: Deploy to dev/test environment
     dependsOn: Build
-    condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'),eq(variables['Build.SourceBranch'], 'refs/heads/cr*'))
+    condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'),eq(variables['Build.SourceBranch'], 'refs/heads/cr*')))
     jobs:
       - deployment: DeployLinuxWebAppDev
         displayName: Deploy Linux Web App - TestDev
