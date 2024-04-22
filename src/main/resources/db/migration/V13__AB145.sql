@@ -25,7 +25,7 @@ CREATE TABLE public.subsidy_measure_version
     confirmation_date date,
     subsidy_scheme_description text,
     maximum_amount_under_scheme VARCHAR(255),
-    legal_basis_text VARCHAR(5000),
+    legal_basis_text VARCHAR(5000)
 );
 
 ALTER TABLE IF EXISTS public.subsidy_measure_version
