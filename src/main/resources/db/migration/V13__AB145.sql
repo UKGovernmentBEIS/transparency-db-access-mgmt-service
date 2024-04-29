@@ -10,6 +10,7 @@ CREATE TABLE public.subsidy_measure_version
     end_date date,
     duration numeric(36, 1) NOT NULL,
     budget VARCHAR(255) NOT NULL,
+    adhoc boolean NOT NULL,
     ga_subsidy_weblink VARCHAR(500),
     ga_subsidy_weblink_description VARCHAR(255),
     published_measure_date date NOT NULL,
