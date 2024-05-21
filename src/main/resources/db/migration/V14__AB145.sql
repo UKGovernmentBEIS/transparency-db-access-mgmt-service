@@ -28,6 +28,3 @@ CREATE TABLE public.subsidy_measure_version
     maximum_amount_under_scheme VARCHAR(255),
     legal_basis_text VARCHAR(5000)
 );
-
-ALTER TABLE IF EXISTS public.subsidy_measure_version
-    OWNER to postgres;
