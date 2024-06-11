@@ -598,6 +598,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
                 SearchUtils.checkNullOrEmptyString(searchName)
                         ? null :AwardSpecificationUtils.auditUserLikeSearch(searchName.trim())
                         .or(SearchUtils.checkNullOrEmptyString(searchName)
+                                ? null :AwardSpecificationUtils.auditActionLikeSearch(searchName.trim()))
+                        .or(SearchUtils.checkNullOrEmptyString(searchName)
                                 ? null :AwardSpecificationUtils.auditGrantingAuthority(searchName.trim())))
         .and((searchStartDate==null || searchEndDate==null)
                                 ? null :AwardSpecificationUtils.auditLogRange(searchStartDate,searchEndDate));
