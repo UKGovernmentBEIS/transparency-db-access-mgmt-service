@@ -120,5 +120,10 @@ public final class AwardSpecificationUtils {
 
 	    return (root, query, builder) -> builder.between(root.get("createdTimestamp"), fromDate, toDate);
 	}
-	
+
+	public static Specification<AuditLogs> auditActionLikeSearch(String scNumber) {
+
+		return (root, query, builder) -> builder.like(builder.lower(root.get("eventMessage")),
+				builder.lower(builder.literal("%" + scNumber.trim() + "%")));
+	}
 }
