@@ -90,4 +90,7 @@ public class Award {
 
 	@Column(name = "SUBSIDY_AWARD_INTEREST")
 	private String subsidyAwardInterest;
+
+	@Column(name = "SPEI")
+	private String SPEI;
 }
