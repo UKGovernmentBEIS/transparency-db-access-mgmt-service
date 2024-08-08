@@ -1,1 +1,4 @@
+-- Update SUBSIDY_OBJECTIVE column to remove character restriction
+ALTER TABLE public.award ALTER COLUMN SUBSIDY_OBJECTIVE TYPE text;
+
 UPDATE AWARD SET SUBSIDY_OBJECTIVE = '["' || SUBSIDY_OBJECTIVE || '"]';
