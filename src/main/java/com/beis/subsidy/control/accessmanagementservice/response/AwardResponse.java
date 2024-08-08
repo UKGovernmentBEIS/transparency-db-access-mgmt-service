@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 
 @NoArgsConstructor
 @Getter
@@ -49,6 +48,12 @@ public class AwardResponse {
     @JsonProperty
     private String reason;
 
+    @JsonProperty
+    private String subsidyAwardInterest;
+
+    @JsonProperty
+    private String SPEI;
+
     public AwardResponse(Award award) {
         this.awardNumber = award.getAwardNumber();
         this.subsidyFullAmountRange = SearchUtils.formatedFullAmountRange(award.getSubsidyFullAmountRange());
@@ -67,5 +72,7 @@ public class AwardResponse {
         this.subsidyInstrument= award.getSubsidyInstrument();
         this.beneficiaryName= award.getBeneficiary().getBeneficiaryName();
         this.reason=award.getReason();
+        this.subsidyAwardInterest = award.getSubsidyAwardInterest();
+        this.SPEI = award.getSPEI();
     }
 }

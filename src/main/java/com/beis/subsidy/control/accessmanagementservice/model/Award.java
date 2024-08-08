@@ -87,4 +87,10 @@ public class Award {
 	@UpdateTimestamp
 	@Column(name = "LAST_MODIFIED_TIMESTAMP")
 	private LocalDate lastModifiedTimestamp;
+
+	@Column(name = "SUBSIDY_AWARD_INTEREST")
+	private String subsidyAwardInterest;
+
+	@Column(name = "SPEI")
+	private String SPEI;
 }
