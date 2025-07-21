@@ -54,6 +54,9 @@ public class AwardResponse {
     @JsonProperty
     private String SPEI;
 
+    @JsonProperty
+    private String legalBasis;
+
     public AwardResponse(Award award) {
         this.awardNumber = award.getAwardNumber();
         this.subsidyFullAmountRange = SearchUtils.formatedFullAmountRange(award.getSubsidyFullAmountRange());
@@ -74,5 +77,6 @@ public class AwardResponse {
         this.reason=award.getReason();
         this.subsidyAwardInterest = award.getSubsidyAwardInterest();
         this.SPEI = award.getSPEI();
+        this.legalBasis = award.getLegalBasis();
     }
 }
