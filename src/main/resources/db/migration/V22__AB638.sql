@@ -1,0 +1,3 @@
+ALTER TABLE IF EXISTS public.award
+    ADD COLUMN IF NOT EXISTS legal_basis VARCHAR(5000);
+
