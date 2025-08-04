@@ -28,7 +28,7 @@ public class AuditLogsResponse {
     private String eventId;
 
     @JsonProperty
-    private LocalDate actionDateTime;
+    private LocalDateTime actionDateTime;
 
     
     @JsonProperty
