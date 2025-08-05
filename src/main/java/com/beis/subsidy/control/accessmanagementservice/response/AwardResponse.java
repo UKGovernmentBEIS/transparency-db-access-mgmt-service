@@ -57,6 +57,9 @@ public class AwardResponse {
     @JsonProperty
     private String legalBasis;
 
+    @JsonProperty
+    private String standaloneAwardTitle;
+
     public AwardResponse(Award award) {
         this.awardNumber = award.getAwardNumber();
         this.subsidyFullAmountRange = SearchUtils.formatedFullAmountRange(award.getSubsidyFullAmountRange());
@@ -72,11 +75,12 @@ public class AwardResponse {
             this.subsidyMeasureTitle = award.getSubsidyMeasure().getSubsidyMeasureTitle();
             this.scNumber = award.getSubsidyMeasure().getScNumber();
         }
-        this.subsidyInstrument= award.getSubsidyInstrument();
-        this.beneficiaryName= award.getBeneficiary().getBeneficiaryName();
-        this.reason=award.getReason();
+        this.subsidyInstrument = award.getSubsidyInstrument();
+        this.beneficiaryName = award.getBeneficiary().getBeneficiaryName();
+        this.reason =award.getReason();
         this.subsidyAwardInterest = award.getSubsidyAwardInterest();
         this.SPEI = award.getSPEI();
         this.legalBasis = award.getLegalBasis();
+        this.standaloneAwardTitle = award.getStandaloneAwardTitle();
     }
 }
