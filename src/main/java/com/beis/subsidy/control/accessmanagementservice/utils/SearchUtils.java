@@ -265,4 +265,13 @@ public class SearchUtils {
 		return true;
 	}
 
+	public static String formatActionDateTime(LocalDateTime dateTime) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-uuuu HH:mm");
+		String formattedDate = dateTime.format(formatter);
+		if (formattedDate.contains("00:00")) {
+			return formattedDate.replace("00:00", "");
+		}
+		return formattedDate;
+	}
+
 }
