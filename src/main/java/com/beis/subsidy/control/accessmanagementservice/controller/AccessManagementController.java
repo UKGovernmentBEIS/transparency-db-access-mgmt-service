@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -269,13 +269,13 @@ public class AccessManagementController {
 			searchInput.setTotalRecordsPerPage(10);
 		}
 
-        LocalDate startDate=null;
-        LocalDate endDate =null;
+        LocalDateTime startDate=null;
+        LocalDateTime endDate =null;
         if(!StringUtils.isEmpty(searchInput.getSearchStartDate()) &&
                 !StringUtils.isEmpty(searchInput.getSearchEndDate())) {
                  try{
-                startDate =LocalDate.parse(searchInput.getSearchStartDate());
-                endDate =LocalDate.parse(searchInput.getSearchEndDate());
+                startDate = searchInput.getSearchStartDate();
+                endDate = searchInput.getSearchEndDate();
             }catch(Exception e) {
                  return new ResponseEntity<AuditLogsResultsResponse>(new AuditLogsResultsResponse(), HttpStatus.NOT_FOUND);
             }
