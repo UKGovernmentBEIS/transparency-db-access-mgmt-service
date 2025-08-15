@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -14,9 +15,9 @@ public class AuditSearchRequest {
     
     private String searchName;
 
-    private String searchStartDate;
+    private LocalDateTime searchStartDate;
 
-    private String searchEndDate;
+    private LocalDateTime searchEndDate;
 
     private int pageNumber;
 
@@ -24,7 +25,6 @@ public class AuditSearchRequest {
 
 	private String[] sortBy;
 
-   
-   
+
     }
 

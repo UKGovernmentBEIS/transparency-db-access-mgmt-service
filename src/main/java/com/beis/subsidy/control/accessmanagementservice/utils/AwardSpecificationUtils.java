@@ -6,7 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.JoinType;
 import java.text.MessageFormat;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public final class AwardSpecificationUtils {
 
@@ -116,7 +116,7 @@ public final class AwardSpecificationUtils {
 				gaName.trim());
 	}
 	
-	public static Specification<AuditLogs> auditLogRange(LocalDate fromDate, LocalDate toDate) {
+	public static Specification<AuditLogs> auditLogRange(LocalDateTime fromDate, LocalDateTime toDate) {
 
 	    return (root, query, builder) -> builder.between(root.get("createdTimestamp"), fromDate, toDate);
 	}

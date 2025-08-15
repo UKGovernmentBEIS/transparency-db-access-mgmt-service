@@ -47,6 +47,7 @@ import uk.gov.service.notify.NotificationClientException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -542,8 +543,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     
     
     @Override
-    public AuditLogsResultsResponse findMatchingAuditLogDetails(UserPrinciple userPrinciple,String searchName, LocalDate searchStartDate,LocalDate searchEndDate,
-                             Integer page, Integer recordsPerPage,String[] sortBy) {
+    public AuditLogsResultsResponse findMatchingAuditLogDetails(UserPrinciple userPrinciple, String searchName, LocalDateTime searchStartDate, LocalDateTime searchEndDate,
+                                                                Integer page, Integer recordsPerPage, String[] sortBy) {
 
     	log.info("{} :: inside findMatchingAuditLogDetails ", loggingComponentName);
         Page<AuditLogs> pageAwards = null;
@@ -590,7 +591,7 @@ public class AccessManagementServiceImpl implements AccessManagementService {
         return searchResults;
     }
 
-    public Specification<AuditLogs>  getSpecificationAuditDetails(String searchName,LocalDate searchStartDate,LocalDate searchEndDate) {
+    public Specification<AuditLogs>  getSpecificationAuditDetails(String searchName,LocalDateTime searchStartDate,LocalDateTime searchEndDate) {
 
         Specification<AuditLogs> auditSpecifications = Specification
 
@@ -608,8 +609,8 @@ public class AccessManagementServiceImpl implements AccessManagementService {
     }
 
 
-    public Specification<AuditLogs>  getGAAdminSpecificationAuditDetails(String searchName,LocalDate searchStartDate,
-                                                                         LocalDate searchEndDate,String gaName) {
+    public Specification<AuditLogs>  getGAAdminSpecificationAuditDetails(String searchName,LocalDateTime searchStartDate,
+                                                                         LocalDateTime searchEndDate,String gaName) {
 
         Specification<AuditLogs> auditSpecifications = Specification
 
