@@ -30,6 +30,7 @@ public interface AccessManagementService {
 
     SearchSubsidyResultsResponse findMatchingSubsidyMeasureWithAwardDetails(String searchName, String status, Integer page,
                         Integer recordsPerPage, UserPrinciple userPrinciple,String[] sortBy);
-    
-    AuditLogsResultsResponse findMatchingAuditLogDetails(UserPrinciple userPrinciple,String searchName,LocalDate searchStartDate,LocalDate searchEndDate, Integer page, Integer recordsPerPage, String[] sortBy);
+
+    AuditLogsResultsResponse findMatchingAuditLogDetails(UserPrinciple userPrinciple, String searchName, LocalDateTime searchStartDate, LocalDateTime searchEndDate,
+                                                         Integer page, Integer recordsPerPage, String[] sortBy);
 }

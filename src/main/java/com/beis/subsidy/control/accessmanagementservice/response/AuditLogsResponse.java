@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import static com.beis.subsidy.control.accessmanagementservice.utils.SearchUtils.formatActionDateTime;
+
 @NoArgsConstructor
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -28,7 +30,7 @@ public class AuditLogsResponse {
     private String eventId;
 
     @JsonProperty
-    private LocalDate actionDateTime;
+    private String actionDateTime;
 
     
     @JsonProperty
@@ -46,7 +48,7 @@ public class AuditLogsResponse {
         this.eventType = auditLogs.getEventType();
         this.eventId = auditLogs.getEventId();
         this.eventMessage = auditLogs.getEventMessage();
-        this.actionDateTime = auditLogs.getCreatedTimestamp();
+        this.actionDateTime = formatActionDateTime(auditLogs.getCreatedTimestamp());
       
        
     }

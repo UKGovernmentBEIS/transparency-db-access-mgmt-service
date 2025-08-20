@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
@@ -227,7 +228,7 @@ public class SearchUtils {
 			audit.setEventId(userId);
 			audit.setEventMessage(msg);
 			audit.setGaName(userPrinciple.getGrantingAuthorityGroupName());
-			audit.setCreatedTimestamp(LocalDate.now());
+			audit.setCreatedTimestamp(LocalDateTime.now());
 			auditLogsRepository.save(audit);
 		} catch(Exception e) {
 			log.error("{} :: saveAuditLog failed to perform action", e);
@@ -245,7 +246,7 @@ public class SearchUtils {
 			audit.setEventId(awardNo);
 			audit.setEventMessage(eventMsg.toString());
 			audit.setGaName(userPrinciple.getGrantingAuthorityGroupName());
-			audit.setCreatedTimestamp(LocalDate.now());
+			audit.setCreatedTimestamp(LocalDateTime.now());
 			auditLogsRepository.save(audit);
 		} catch(Exception e) {
 			log.error("{} :: saveAuditLogForUpdate failed to perform action", e);
@@ -262,6 +263,15 @@ public class SearchUtils {
 			return false;
 		}
 		return true;
+	}
+
+	public static String formatActionDateTime(LocalDateTime dateTime) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM uuuu HH:mm");
+		String formattedDate = dateTime.format(formatter);
+		if (formattedDate.contains("00:00")) {
+			return formattedDate.replace("00:00", "");
+		}
+		return formattedDate;
 	}
 
 }
